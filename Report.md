@@ -53,6 +53,42 @@ comparing `postgresql` with `MYSQL`; comparing `JDBC` with `Python Database Conn
 
 ### 3.Script Description
 There are mainly 4 java file we used in finishing the basic part.\
-**DataHandler.java**
+#### DataHandler.java
+This is an interface which contains some methods that will be implemented
+in class `FileHandler` and `DatabaseHandler`.The methods are listed below.
+There are very detailed annotation in the source code that explained every
+method.
+```java
+public interface DataHandler {
+    public List<String> queryAllUsersName();
+    public List<String> queryNameByMIDRange(long min, long max);
+    public List<String> queryNameByLevel(int level);
+    public List<String> queryNameByMID2Digits(char c1, char c2);
+    public List<String> queryLongestName();
+    public int queryDistinctBirthdayCnt();
+    public List<String> queryMostFollowersUserName();
+    public void insertUser(long mid, String name, String sex, 
+                           String birth, int lv, String sign, 
+                           List<Long> fol, String idt);
+    public void updateSexByMID(long mid, String sex);
+    public void updateFollowersByMID(long up_mid, long fans_mid);
+    public void deleteUserByMID(long mid);
+}
+```
+#### FileHandler.java
+This is a script only use `java.io` and `java.util` to implements the method
+in the interface `DataHandler`. Instead, we use a lot of String operations 
+such as `split()`, `substring()` and `equals()`.
+#### DatabaseHandler.java
+
+
+#### Client.java
+
+
+#### jdbc.properties
+
+
+
+### 4.Basic Comparison
 
 
