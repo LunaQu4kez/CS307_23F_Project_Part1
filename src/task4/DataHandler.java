@@ -72,6 +72,13 @@ public interface DataHandler {
     public void insertUser(long mid, String name, String sex, String birth,
                            int lv, String sign, List<Long> fol, String idt);
 
+    /**
+     * Insert a data which is an user follow an user.
+     * @param up_mid  The mid of the user being followed.
+     * @param fans_mid  The mid of the user following others.
+     */
+    public void insertFollowersByMID(long up_mid, long fans_mid);
+
 
 
     // Update
@@ -81,13 +88,6 @@ public interface DataHandler {
      * @param sex  The sex will be update
      */
     public void updateSexByMID(long mid, String sex);
-
-    /**
-     * Update a data which is an user follow an user.
-     * @param up_mid  The mid of the user being followed.
-     * @param fans_mid  The mid of the user following others.
-     */
-    public void updateFollowersByMID(long up_mid, long fans_mid);
 
 
 

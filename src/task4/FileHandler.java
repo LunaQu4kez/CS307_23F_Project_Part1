@@ -4,6 +4,8 @@ import java.io.*;
 import java.util.*;
 
 public class FileHandler implements DataHandler {
+    private String filePath = "data\\users-1.csv";
+
     @Override
     public List<String> queryAllUsersName() {
         List<String> list = new ArrayList<>();
@@ -11,7 +13,7 @@ public class FileHandler implements DataHandler {
         String line;
         StringBuilder sb = new StringBuilder();
         try {
-            BufferedReader bf = new BufferedReader(new FileReader("data\\users.csv"));
+            BufferedReader bf = new BufferedReader(new FileReader(filePath));
             bf.readLine();
             while ((line = bf.readLine()) != null) {
                 sb.append(line);
@@ -34,7 +36,7 @@ public class FileHandler implements DataHandler {
         String line;
         StringBuilder sb = new StringBuilder();
         try {
-            BufferedReader bf = new BufferedReader(new FileReader("data\\users.csv"));
+            BufferedReader bf = new BufferedReader(new FileReader(filePath));
             bf.readLine();
             while ((line = bf.readLine()) != null) {
                 sb.append(line);
@@ -59,7 +61,7 @@ public class FileHandler implements DataHandler {
         String line;
         StringBuilder sb = new StringBuilder();
         try {
-            BufferedReader bf = new BufferedReader(new FileReader("data\\users.csv"));
+            BufferedReader bf = new BufferedReader(new FileReader(filePath));
             bf.readLine();
             while ((line = bf.readLine()) != null) {
                 sb.append(line);
@@ -92,7 +94,7 @@ public class FileHandler implements DataHandler {
         String line;
         StringBuilder sb = new StringBuilder();
         try {
-            BufferedReader bf = new BufferedReader(new FileReader("data\\users.csv"));
+            BufferedReader bf = new BufferedReader(new FileReader(filePath));
             bf.readLine();
             while ((line = bf.readLine()) != null) {
                 sb.append(line);
@@ -118,7 +120,7 @@ public class FileHandler implements DataHandler {
         String line;
         StringBuilder sb = new StringBuilder();
         try {
-            BufferedReader bf = new BufferedReader(new FileReader("data\\users.csv"));
+            BufferedReader bf = new BufferedReader(new FileReader(filePath));
             bf.readLine();
             while ((line = bf.readLine()) != null) {
                 sb.append(line);
@@ -157,7 +159,7 @@ public class FileHandler implements DataHandler {
         String line;
         StringBuilder sb = new StringBuilder();
         try {
-            BufferedReader bf = new BufferedReader(new FileReader("data\\users.csv"));
+            BufferedReader bf = new BufferedReader(new FileReader(filePath));
             bf.readLine();
             while ((line = bf.readLine()) != null) {
                 sb.append(line);
@@ -198,7 +200,7 @@ public class FileHandler implements DataHandler {
         String line;
         StringBuilder sb = new StringBuilder();
         try {
-            BufferedReader bf = new BufferedReader(new FileReader("data\\users.csv"));
+            BufferedReader bf = new BufferedReader(new FileReader(filePath));
             bf.readLine();
             while ((line = bf.readLine()) != null) {
                 sb.append(line);
@@ -230,7 +232,8 @@ public class FileHandler implements DataHandler {
     }
 
     @Override
-    public void insertUser(long mid, String name, String sex, String birth, int lv, String sign, List<Long> fol, String idt) {
+    public void insertUser(long mid, String name, String sex, String birth,
+                           int lv, String sign, List<Long> fol, String idt) {
         StringBuilder sb = new StringBuilder();
         sb.append(mid);
         sb.append(",");
@@ -258,7 +261,7 @@ public class FileHandler implements DataHandler {
         }
         sb.append(idt);
         sb.append("\n");
-        try (FileWriter writer = new FileWriter("data\\users.csv", true)) {
+        try (FileWriter writer = new FileWriter(filePath, true)) {
             writer.write(sb.toString());
         } catch (IOException e) {
             e.printStackTrace();
@@ -266,60 +269,12 @@ public class FileHandler implements DataHandler {
     }
 
     @Override
-    public void updateSexByMID(long mid, String sex) {
-        List<String> list = new ArrayList<>();
-        String line;
-        StringBuilder sb = new StringBuilder();
-        int midIdx = 0;
-        try {
-            BufferedReader bf = new BufferedReader(new FileReader("data\\users.csv"));
-            list.add(bf.readLine() + "\n");
-            while ((line = bf.readLine()) != null) {
-                sb.append(line);
-                if (line.length() >= 4 && line.substring(line.length() - 4).equals("user")) {
-                    String[] data = sb.toString().split(",");
-                    if (Long.parseLong(data[midIdx]) == mid) {
-                        int sexIdx = 2;
-                        while (true) {
-                            if (data[sexIdx].equals("保密") || data[sexIdx].equals("男")
-                                    || data[sexIdx].equals("女")) break;
-                            sexIdx++;
-                        }
-                        data[sexIdx] = sex;
-                        sb = new StringBuilder();
-                        for (int i = 0; i < data.length - 1; i++) {
-                            sb.append(data[i]);
-                            sb.append(",");
-                        }
-                        sb.append(data[data.length - 1]);
-                    }
-                    sb.append("\n");
-                    list.add(sb.toString());
-                    sb = new StringBuilder();
-                } else {
-                    sb.append("\n");
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        System.out.println("size = " + list.size());
-        try (FileWriter writer = new FileWriter("data\\users.csv")) {
-            for (int i = 0; i < list.size(); i++) {
-                writer.write(list.get(i));
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void updateFollowersByMID(long up_mid, long fans_mid) {
+    public void insertFollowersByMID(long up_mid, long fans_mid) {
         List<String> list = new ArrayList<>();
         String line;
         StringBuilder sb = new StringBuilder();
         try {
-            BufferedReader bf = new BufferedReader(new FileReader("data\\users.csv"));
+            BufferedReader bf = new BufferedReader(new FileReader(filePath));
             list.add(bf.readLine() + "\n");
             while ((line = bf.readLine()) != null) {
                 sb.append(line);
@@ -358,7 +313,55 @@ public class FileHandler implements DataHandler {
             e.printStackTrace();
         }
         System.out.println("size = " + list.size());
-        try (FileWriter writer = new FileWriter("data\\users.csv")) {
+        try (FileWriter writer = new FileWriter(filePath)) {
+            for (int i = 0; i < list.size(); i++) {
+                writer.write(list.get(i));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void updateSexByMID(long mid, String sex) {
+        List<String> list = new ArrayList<>();
+        String line;
+        StringBuilder sb = new StringBuilder();
+        int midIdx = 0;
+        try {
+            BufferedReader bf = new BufferedReader(new FileReader(filePath));
+            list.add(bf.readLine() + "\n");
+            while ((line = bf.readLine()) != null) {
+                sb.append(line);
+                if (line.length() >= 4 && line.substring(line.length() - 4).equals("user")) {
+                    String[] data = sb.toString().split(",");
+                    if (Long.parseLong(data[midIdx]) == mid) {
+                        int sexIdx = 2;
+                        while (true) {
+                            if (data[sexIdx].equals("保密") || data[sexIdx].equals("男")
+                                    || data[sexIdx].equals("女")) break;
+                            sexIdx++;
+                        }
+                        data[sexIdx] = sex;
+                        sb = new StringBuilder();
+                        for (int i = 0; i < data.length - 1; i++) {
+                            sb.append(data[i]);
+                            sb.append(",");
+                        }
+                        sb.append(data[data.length - 1]);
+                    }
+                    sb.append("\n");
+                    list.add(sb.toString());
+                    sb = new StringBuilder();
+                } else {
+                    sb.append("\n");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        System.out.println("size = " + list.size());
+        try (FileWriter writer = new FileWriter(filePath)) {
             for (int i = 0; i < list.size(); i++) {
                 writer.write(list.get(i));
             }
@@ -374,7 +377,7 @@ public class FileHandler implements DataHandler {
         StringBuilder sb = new StringBuilder();
         int midIdx = 0;
         try {
-            BufferedReader bf = new BufferedReader(new FileReader("data\\users.csv"));
+            BufferedReader bf = new BufferedReader(new FileReader(filePath));
             list.add(bf.readLine() + "\n");
             while ((line = bf.readLine()) != null) {
                 sb.append(line);
@@ -393,7 +396,7 @@ public class FileHandler implements DataHandler {
             e.printStackTrace();
         }
         System.out.println("size = " + list.size());
-        try (FileWriter writer = new FileWriter("data\\users.csv")) {
+        try (FileWriter writer = new FileWriter(filePath)) {
             for (int i = 0; i < list.size(); i++) {
                 writer.write(list.get(i));
             }
