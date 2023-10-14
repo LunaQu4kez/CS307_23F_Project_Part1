@@ -121,7 +121,7 @@ public class Client {
         return mid;
     }
 
-    private static String randName() {
+    static String randName() {
         Random random = new Random();
         StringBuilder name = new StringBuilder();
         int len = random.nextInt(12) + 4;
@@ -131,13 +131,13 @@ public class Client {
         return name.toString();
     }
 
-    private static String randSex() {
+    static String randSex() {
         Random random = new Random();
         String[] sex = new String[]{"男", "女", "保密"};
         return sex[random.nextInt(3)];
     }
 
-    private static String randBirth() {
+    static String randBirth() {
         Random random = new Random();
         int day;
         int month = 1 + random.nextInt(12);
@@ -151,7 +151,7 @@ public class Client {
         return month + "月" + day + "日";
     }
 
-    private static String randSign() {
+    static String randSign() {
         Random random = new Random();
         StringBuilder sign = new StringBuilder();
         int len = random.nextInt(60);

@@ -3,12 +3,18 @@ package task4;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.ResourceBundle;
 
 public class DatabaseHandler implements DataHandler {
     private Connection conn = null;
     private PreparedStatement stmt = null;
     private ResultSet rs = null;
+
+    private static final int threadNum = 50;
+    private static final int dataTotalNum = 100000;
+    private static final int dataNum = dataTotalNum / threadNum;
+    private static long cnt = 10000000000000000L;
 
     public void openDB() {
         ResourceBundle bundle = ResourceBundle.getBundle("jdbc");
@@ -49,6 +55,16 @@ public class DatabaseHandler implements DataHandler {
             } catch (SQLException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    public void truncateUser() {
+        String sql = "truncate table project_user cascade";
+        try {
+            stmt = conn.prepareStatement(sql);
+            stmt.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
@@ -159,7 +175,26 @@ public class DatabaseHandler implements DataHandler {
 
     @Override
     public List<String> queryMostFollowersUserName() {
-        return null;
+        List<String> list = new ArrayList<>();
+        String sql = "select name from project_user " +
+                "where mid = " +
+                "(select user_mid as cnt from project_following " +
+                "group by user_mid " +
+                "having count(user_mid) =  " +
+                "(select count(user_mid) from project_following " +
+                "group by user_mid " +
+                "order by count(user_mid) desc limit 1) " +
+                ")";
+        try {
+            stmt = conn.prepareStatement(sql);
+            rs = stmt.executeQuery();
+            while (rs.next()) {
+                list.add(rs.getString("name"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 
     @Override
@@ -227,6 +262,86 @@ public class DatabaseHandler implements DataHandler {
             stmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
+        }
+    }
+
+    public void concurrencyMulti() {
+        Runnable[] runs = new UserThread[threadNum];
+        Thread[] threads = new Thread[threadNum];
+        long start = System.currentTimeMillis();
+        for (int i = 0; i < threadNum; i++) {
+            runs[i] = new UserThread(false);
+            threads[i] = new Thread(runs[i]);
+            threads[i].start();
+            try {
+                threads[i].join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        long end = System.currentTimeMillis();
+        //System.out.println("Time cost " + (end - start) + " ms.");
+        System.out.println(end - start);
+    }
+
+    public void concurrencySingle() {
+        Runnable run = new UserThread(true);
+        Thread thread = new Thread(run);
+        long start = System.currentTimeMillis();
+        thread.start();
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        long end = System.currentTimeMillis();
+        //System.out.println("Time cost " + (end - start) + " ms.");
+        System.out.println(end - start);
+    }
+
+    private class UserThread implements Runnable {
+        List<Client.User> users;
+        boolean single;
+
+        public UserThread(boolean single) {
+            this.single = single;
+            Random random = new Random();
+            users = new ArrayList<>();
+            int turn = dataNum * (single ? threadNum : 1);
+            for (int i = 0; i < turn; i++) {
+                Client.User user = new Client.User();
+                user.mid = ++cnt;
+                user.name = Client.randName();
+                user.sex = Client.randSex();
+                user.birth = Client.randBirth();
+                user.level = random.nextInt(7);
+                user.sign = Client.randSign();
+                user.fol = new ArrayList<>();
+                user.idt = random.nextBoolean() ? "user" : "superuser";
+                users.add(user);
+            }
+        }
+
+        @Override
+        public void run() {
+            //System.out.println("run() execute");
+            String sql = "insert into project_user values(?, ?, ?, ?, ?, ?, ?)";
+            try {
+                stmt = conn.prepareStatement(sql);
+                for (int i = 0; i < dataNum * (single ? threadNum : 1); i++) {
+                    Client.User user = users.get(i);
+                    stmt.setLong(1, user.mid);
+                    stmt.setString(2, user.name);
+                    stmt.setString(3, user.sex);
+                    stmt.setString(4, user.birth);
+                    stmt.setInt(5, user.level);
+                    stmt.setString(6, user.sign);
+                    stmt.setString(7, user.idt);
+                    stmt.executeUpdate();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
     }
 }
