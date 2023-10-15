@@ -5,6 +5,7 @@ import java.util.*;
 
 public class FileHandler implements DataHandler {
     private String filePath = "data\\users-1.csv";
+    private BTree<Long, String> infoTree;
 
     @Override
     public List<String> queryAllUsersName() {
@@ -403,5 +404,31 @@ public class FileHandler implements DataHandler {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void getBTree() {
+        infoTree = new BTree<>();
+        int midIdx = 0;
+        String line;
+        StringBuilder sb = new StringBuilder();
+        try {
+            BufferedReader bf = new BufferedReader(new FileReader(filePath));
+            bf.readLine();
+            while ((line = bf.readLine()) != null) {
+                sb.append(line);
+                if (line.length() >= 4 && line.substring(line.length() - 4).equals("user")) {
+                    long mid = Long.parseLong(sb.toString().split(",")[midIdx]);
+                    infoTree.put(mid, sb.toString());
+                    sb = new StringBuilder();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public String queryByMid(long mid) {
+        return infoTree.get(mid);
     }
 }

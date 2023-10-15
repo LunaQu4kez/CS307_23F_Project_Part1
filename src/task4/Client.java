@@ -209,7 +209,7 @@ public class Client {
         }
     }
 
-    private static void getMid() {
+    public static void getMid() {
         mids = new HashSet<>();
         int midIdx = 0;
         String line;

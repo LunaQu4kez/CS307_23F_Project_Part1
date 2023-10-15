@@ -28,6 +28,13 @@ public interface DataHandler {
     public List<String> queryNameByLevel(int level);
 
     /**
+     * Query to test the efficiency of index
+     * @param mid  target level
+     * @return  A list of users' name whose level is level.
+     */
+    public String queryByMid(long mid);
+
+    /**
      * Vague Query
      * @param c1  first digit
      * @param c2  second digit

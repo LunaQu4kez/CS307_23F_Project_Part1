@@ -14,7 +14,7 @@
 **Contribution of work** 
 袁龙: E-R Diagram, Table Creation(including Report), `postgresql` & `MySQL` Comparison 
 于斯瑶: Data Import and Optimize(including Report), `JDBC` & `PDBC` Comparison 
-赵钊: Basic Comparison(including Report), Index & `B-Tree` `B+Tree` Comparison, Concurrency Test  
+赵钊: Basic Comparison(including Report), Index & `B-Tree`  Comparison, Concurrency Test  
 Together: Database Design
 
 ## Task 1: E-R Diagram
@@ -22,6 +22,12 @@ We use [Visio](https://visio.iruanhui.cn/?bd_vid=9042954634973670880) to draw th
 <p float="none">
   <img src="pic\\task1\\E-R diagram.png" width="840" />
 </p>
+
+
+
+
+
+
 
 
 ## Task 2: Database Design
@@ -201,8 +207,41 @@ delete from project_user where mid = ?
 
 
 
-### 5. Comparison between DBMS with Indexes and File I/O with B-Tree, B+Tree
-According to the [`postgresql` docs](http://www.postgres.cn/docs/12/indexes-types.html), `postgresql` has an index system implemented by B-tree, which can increase the efficiency of some operations. So we can compare DBMS indexes with `Java` implemented B-tree and B+tree.
+### 5. Comparison between DBMS with Indexes and File I/O with B-Tree
+According to the [`postgresql` docs](http://www.postgres.cn/docs/12/indexes-types.html), `postgresql` has an index system implemented by B-tree, which can increase the efficiency of some operations. So we can compare DBMS indexes with `Java` implemented B-tree.
+
+In this part, we compare the index of the primary key in `project_user` and File I/O with B-Tree. Since the the primary key of a table has native index, we do not need to add extra index to the table. 
+
+The `Java` implemented B-tree is in `BTree.java`. The implementation is refer to Algorithms, 4th Edition by Robert Sedgewick and Kevin Wayne. Two inner class `Node` and `Entry` are used to construct the B-Tree. There are two `public` access permission method as follows which we can call them to insert and find data.
+
+```java
+public class BTree<Key extends Comparable<Key>, Value>  {    
+	private static final class Node {
+        private int m;
+        private Entry[] children;
+
+        private Node(int k) {
+            m = k;
+            children = new Entry[M];
+        }
+    }
+
+    private static class Entry {
+        private Comparable key;
+        private Object val;
+        private Node next;
+
+        public Entry(Comparable key, Object val, Node next) {
+            this.key  = key;
+            this.val  = val;
+            this.next = next;
+        }
+    }
+    
+    public Value get(Key key);
+    public void put(Key key, Value val);
+}
+```
 
 
 
@@ -246,7 +285,6 @@ The result is as follows. The figure on the left shows time cost of each number 
 
 The figure on the right is a line chart which shows the time cost of different condition deal with different size of data. From the graph, **all condition are extremely close to linear**, with single thread cost just a bit less time. **This means even more threads and more data, DBMS will not cost extra time so the concurrency of DBMS is good.**
 
-<p float="none">
-  <img src="pic\\task4\\8_1.png" width="420" />
-  <img src="pic\\task4\\8_2.png" width="420" />
+<p align="middle">
+  <img src="pic\\task4\\8.png" width="700" />
 </p>

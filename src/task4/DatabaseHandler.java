@@ -344,4 +344,20 @@ public class DatabaseHandler implements DataHandler {
             }
         }
     }
+
+    @Override
+    public String queryByMid(long mid) {
+        String res = null;
+        String sql = "select * from project_user where mid = ?";
+        try {
+            stmt = conn.prepareStatement(sql);
+            stmt.setLong(1, mid);
+            rs = stmt.executeQuery();
+            while (rs.next())
+                res = rs.getString(1);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return res;
+    }
 }
