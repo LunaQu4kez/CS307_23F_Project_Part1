@@ -6,9 +6,9 @@ create table project_user
     name        varchar(400) not null ,
     sex         varchar(10),
     birthday    varchar(20),
-    level       integer not null ,
-    sign        varchar(2000),
-    identity    varchar(20) not null
+    level       integer,
+    sign        varchar(5000),
+    identity    varchar(20)
 );
 
 create table project_videos
@@ -84,4 +84,3 @@ create table project_view
     time        integer,
     primary key (BV, mid)
 );
-
