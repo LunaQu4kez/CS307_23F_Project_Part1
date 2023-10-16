@@ -83,10 +83,16 @@ CS307_23F_Project_Part1
         └── *.java
 ```
 
+
+
 ### 2. Test Description
+
 In this task, we mainly use the data in file `user.csv`, so we mainly focus on table `project_user` and `project_follow`. In the basic part, we will test some DQL and some DML including insert, update, delete operations then compare them with `java.io`. In the advanced task, we will compare DBMS with indexes with Java implemented `B-tree`, `B+tree`; using multi-user and multi-threading to test concurrency; comparing `postgresql` with `MySQL`; comparing `JDBC` with `Python Database Connection`.
 
+
+
 ### 3. Script Description
+
 There are mainly 4 java file we used in finishing the basic part.
 #### DataHandler.java
 This is an interface which contains some methods that will be implemented in class `FileHandler` and `DatabaseHandler`.The methods are listed below. There are very detailed annotation in the source code that explained every method.
@@ -132,7 +138,7 @@ public class Client {
     }
 }
 ```
-We input our operation(an integer between `1` and `11`) id and if necessary, the script will generate random data, if not, it will run and calculate the time cost using file io or DBMS then print it out.**The time is not counted when `openDB()` and `closeDB()` is running.**
+We input our operation(an integer between `1` and `11`) id and if necessary, the script will generate random data, if not, it will run and calculate the time cost using file I/O or DBMS then print it out. **The time is not counted when `openDB()` and `closeDB()` is running. Similarly, the time of File I/O is only counted when doing operations on file.**
 
 #### jdbc.properties
 A property file that contains some necessary information to connect to DBMS. Information contains 
@@ -143,26 +149,48 @@ A property file that contains some necessary information to connect to DBMS. Inf
 - `user`: The user's name which default value is `postgres`
 - `password`: The password of the user
 
+
+
 ### 4. Basic Comparison
+
 #### Basic Queries
 We compare 4 queries in basic query, containing query all, range query, specific query and vague query. The query sentences are below.
 ```sql
 1. select name from project_user
-2. select name from project_user where ? <= mid & mid <= ?
+2. select name from project_user where ? <= mid and mid <= ?
 3. select name from project_user where level = ?
 4. select name from project_user where mid = ? -- ? is like '24%', '53%' and so on
 ```
-We test each sentence for 5 times, record the result and visualize them with graph below. It is worth mentioning that in the second query, each time we change the range to see whether the program work good or not.
+**We test each sentence for 5 times**, record the result and visualize them with graph below. It is worth mentioning that in the second query, each time we change the range to see whether the program work good or not. For query 2 to 4, each time we change the value of `?` to wider the testing range. And the result of this 4 basic query are as follows.
+
+<p float="none">
+  <img src="pic\\task4\\4_1.1.png" width="800" />
+</p>
+
+<p float="none">
+  <img src="pic\\task4\\4_1.2.png" width="800" />
+</p>
+
+**We have found that in all four queries, DBMS does better than File I/O. In addition, we observed that in range query, the larger the range is, the more time both File I/O and DBMS cost. However, the growth percentage of File I/O is larger.** This can be explain from the underlying implementation. Every time, File I/O will iterate every line, which complexity is `O(N)`. But DBMS may use B-Tree to manage data, with a complexity of `O(logN)`.
+
 
 
 #### Queries Relating to Functions
+
 We compare 2 queries in basic query, containing `max(unknown)` and `count(unknown)` in addition keyword `distinct`. The query sentences are below.
 ```sql
 1. select name from project_user 
    where length(name) = (select max(length(name)) from project_user)
 2. select count(distinct name) from project_user
 ```
-Also, we test each sentence for 5 times, and the result are in the below graph.
+Also, we test each sentence for 5 times, and the result are in the below graph. **In the implement of function `max()`, DBMS is better than File I/O. But in the implement of keyword `distinct`, File I/O perform better. This may because `HashSet<>` is very efficiency since its complexity in single operation is `O(1)`.**
+
+<p float="none">
+  <img src="pic\\task4\\4_2.png" width="800" />
+</p>
+
+
+
 
 
 #### Multi-table Query
@@ -170,12 +198,15 @@ Also, we test each sentence for 5 times, and the result are in the below graph.
 There is a query relating to table `project_user` and `project_following` that return the `name` of user who has the most followers. And here is the query sentence.
 
 ```sql
-select name from project_user where mid =
-(select user_mid as cnt from project_following
-group by user_mid having count(user_mid) =
-(select count(user_mid) from project_following
-group by user_mid order by count(user_mid) desc limit 1))
+select name from project_user 
+group by mid order by count(mid) desc limit 1
 ```
+
+The result is as follows. We can find that: **The efficiency of DBMS is not affected by the increase in the number of data tables. **Maybe DBMS has efficient way to join multi-table together.
+
+<p float="none">
+  <img src="pic\\task4\\4_3.png" width="400" />
+</p>
 
 
 
@@ -186,6 +217,14 @@ There are two insert sentence tested in this part, including insert an user and 
 2. insert into project_following values(?, ?)
 ```
 
+All inserted data is generate randomly by methods in class `Client`.  **The data size of this two test are both 1000**, that is, we will test 5 times and each time we insert 1000 random data into the corresponding table. The result of this two insert sentence test is below. 
+
+<p float="none">
+  <img src="pic\\task4\\4_4.png" width="800" />
+</p>
+
+**We find that in the first inert operation, File I/O does better than DBMS. This may because if we want to insert an `user`, we just need to append a single line at the end of the file and this is very fast. But if we want to add a follower to one user, we need to rewrite the whole file. And in the two insert operations, DBMS takes about the same amount of time which reflect DBMS Has good stability.**
+
 
 
 
@@ -195,6 +234,12 @@ We use the following `DML` sentence to test update operation. The two `?` respec
 update project_user set sex = ? where mid = ?
 ```
 
+All updated data is generate randomly by methods in class `Client`.  **Each time we update 500 users `sex` and we test for 5 times.** The result of this test is below. **File I/O cost much more time than DBMS. This is similarly to the second insert operation, if we want to update an user's `sex` we need to rewrite the whole file which cost more time.** 
+
+<p float="none">
+  <img src="pic\\task4\\4_5.png" width="400" />
+</p>
+
 
 
 
@@ -203,6 +248,12 @@ We use the following `DML` sentence to test delete operation. The `?` in the sen
 ```sql
 delete from project_user where mid = ?
 ```
+
+The user we delete each time is chosen randomly and the users deleted in file and database in one test are the same. **Each time we delete 500 users and we test for 5 times.** The result of this test is as follows. **The same as insert and update, the delete operation of File I/O is far more slower than DBMS.** This is because if we want to delete a data with File I/O, we need to rewrite the whole file, which cost a large amount of time. 
+
+<p float="none">
+  <img src="pic\\task4\\4_6.png" width="400" />
+</p>
 
 
 
@@ -242,6 +293,18 @@ public class BTree<Key extends Comparable<Key>, Value>  {
     public void put(Key key, Value val);
 }
 ```
+
+In this test, we compare query between DBMS and File I/O. **We test for 5 times and each time we will randomly query 1000 users' `mid` to get their `name`. ** Here are the query sentence and the result is as follows.
+
+```sql
+select * from project_user where mid = ?
+```
+
+<p float="none">
+  <img src="pic\\task4\\5.png" width="400" />
+</p>
+
+We may find that in this case File I/O with B-Tree cost much less time than without B-Tree and **it is even fast than DBMS**. We conclude that although the build of B-Tree may cost some time, when the number of query operations increase, the advantage of B-Tree will be greater.
 
 
 
@@ -286,5 +349,6 @@ The result is as follows. The figure on the left shows time cost of each number 
 The figure on the right is a line chart which shows the time cost of different condition deal with different size of data. From the graph, **all condition are extremely close to linear**, with single thread cost just a bit less time. **This means even more threads and more data, DBMS will not cost extra time so the concurrency of DBMS is good.**
 
 <p align="middle">
-  <img src="pic\\task4\\8.png" width="700" />
+  <img src="pic\\task4\\8.png" width="1000" />
 </p>
+

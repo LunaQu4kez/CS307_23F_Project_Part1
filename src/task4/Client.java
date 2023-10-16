@@ -8,13 +8,13 @@ public class Client {
     private static String filePath = "data\\users-1.csv";
     private static Set<Long> mids;
     private static List<User> users;
-    private static final int usersLen = 50000;
+    private static final int usersLen = 1000;
     private static List<long[]> follows;
-    private static final int followsLen = 5000;
+    private static final int followsLen = 1000;
     private static Map<Long, String> sexes;
-    private static final int sexesLen = 5;
+    private static final int sexesLen = 500;
     private static List<Long> del;
-    private static final int delLen = 2;
+    private static final int delLen = 500;
 
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
@@ -48,13 +48,13 @@ public class Client {
                 handler.queryAllUsersName();
                 break;
             case 2:
-                handler.queryNameByMIDRange(100000, 5000000);  // Can change min, max
+                handler.queryNameByMIDRange(1000, 1000000000);  // Can change min, max
                 break;
             case 3:
-                handler.queryNameByLevel(1);  // Can change level
+                handler.queryNameByLevel(6);  // Can change level
                 break;
             case 4:
-                handler.queryNameByMID2Digits('2', '6');  // Can change c1, c2
+                handler.queryNameByMID2Digits('9', '7');  // Can change c1, c2
                 break;
             case 5:
                 handler.queryLongestName();
@@ -84,7 +84,8 @@ public class Client {
                 break;
         }
         end = System.currentTimeMillis();
-        System.out.println("Time spend " + (end - start) + " ms.");
+        //System.out.println("Time spend " + (end - start) + " ms.");
+        System.out.println(end - start);
     }
 
     static class User {
@@ -174,8 +175,14 @@ public class Client {
                     break;
                 }
             }
-            while (data[1] < 1 || data[1] > (long)3e15)
-                data[1] = random.nextLong();
+            idx = random.nextInt(mids.size());
+            cnt = 0;
+            for (long up_mid : mids) {
+                if (cnt++ == idx) {
+                    data[1] = up_mid;
+                    break;
+                }
+            }
             follows.add(data);
         }
     }

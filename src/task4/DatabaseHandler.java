@@ -88,7 +88,7 @@ public class DatabaseHandler implements DataHandler {
     @Override
     public List<String> queryNameByMIDRange(long min, long max) {
         List<String> list = new ArrayList<>();
-        String sql = "select name from project_user where ? <= mid & mid <= ?";
+        String sql = "select name from project_user where mid >= ? and mid <= ?";
         try {
             stmt = conn.prepareStatement(sql);
             stmt.setLong(1, min);
@@ -125,7 +125,7 @@ public class DatabaseHandler implements DataHandler {
     @Override
     public List<String> queryNameByMID2Digits(char c1, char c2) {
         List<String> list = new ArrayList<>();
-        String sql = "select name from project_user where mid = ?";
+        String sql = "select name from project_user where cast(mid as varchar) like ?";
         try {
             stmt = conn.prepareStatement(sql);
             String module = "'" + c1 + "" + c2 + "%'";
@@ -176,15 +176,7 @@ public class DatabaseHandler implements DataHandler {
     @Override
     public List<String> queryMostFollowersUserName() {
         List<String> list = new ArrayList<>();
-        String sql = "select name from project_user " +
-                "where mid = " +
-                "(select user_mid as cnt from project_following " +
-                "group by user_mid " +
-                "having count(user_mid) =  " +
-                "(select count(user_mid) from project_following " +
-                "group by user_mid " +
-                "order by count(user_mid) desc limit 1) " +
-                ")";
+        String sql = "select name from project_user group by mid order by count(mid) desc limit 1";
         try {
             stmt = conn.prepareStatement(sql);
             rs = stmt.executeQuery();

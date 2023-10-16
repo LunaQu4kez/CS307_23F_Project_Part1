@@ -189,7 +189,6 @@ public class FileHandler implements DataHandler {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        for (String str : set) System.out.println(str);
         return set.size();
     }
 

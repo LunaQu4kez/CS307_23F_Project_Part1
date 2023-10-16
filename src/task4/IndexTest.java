@@ -9,7 +9,7 @@ import java.util.Set;
 public class IndexTest {
     private static Set<Long> mids;
     private static String filePath = "data\\users-1.csv";
-    private static int time = 50;
+    private static int time = 1000;
     private static long[] testData = new long[time];
 
     public static void main(String[] args) {
@@ -18,27 +18,28 @@ public class IndexTest {
             testData[i] = randMid();
         }
         FileHandler fh = new FileHandler();
-        fh.getBTree();
         DatabaseHandler dh = new DatabaseHandler();
         fileTest(fh);
         dbTest(dh);
     }
 
     private static void fileTest(FileHandler fh) {
-        dataTest(fh);
+        long start = System.currentTimeMillis();
+        fh.getBTree();
+        for (long mid : testData) fh.queryByMid(mid);
+        long end = System.currentTimeMillis();
+        //System.out.println("Time cost " + (end - start) + " ms.");
+        System.out.println(end - start);
     }
 
     private static void dbTest(DatabaseHandler dh) {
         dh.openDB();
-        dataTest(dh);
-        dh.closeDB();
-    }
-
-    private static void dataTest(DataHandler handler) {
         long start = System.currentTimeMillis();
-        for (long mid : testData) handler.queryByMid(mid);
+        for (long mid : testData) dh.queryByMid(mid);
         long end = System.currentTimeMillis();
-        System.out.println("Time cost " + (end - start) + " ms.");
+        //System.out.println("Time cost " + (end - start) + " ms.");
+        System.out.println(end - start);
+        dh.closeDB();
     }
 
     private static long randMid() {
