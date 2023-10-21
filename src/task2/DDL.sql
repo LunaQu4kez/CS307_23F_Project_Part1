@@ -30,13 +30,14 @@ create table project_videos
 
 create table project_danmu
 (
+    id          integer,
     BV          varchar(400)
         references project_videos (BV),
     mid         bigint
         references project_user (mid),
     time        float4,
     content     varchar(400),
-    primary key (BV, mid, time)
+    primary key (id)
 );
 
 create table project_following
