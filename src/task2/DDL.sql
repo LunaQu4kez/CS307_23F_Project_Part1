@@ -26,7 +26,8 @@ create table project_videos
     description varchar(2000),
     reviewer    bigint
         references project_user (mid)
-);
+);    primary key (user_mid, fans_mid)
+
 
 create table project_danmu
 (
@@ -46,7 +47,6 @@ create table project_following
         references project_user(mid),
     fans_mid    bigint
         references project_user(mid),
-    primary key (user_mid, fans_mid)
 );
 
 create table project_like
