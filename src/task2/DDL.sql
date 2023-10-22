@@ -23,7 +23,7 @@ create table project_videos
     review_time timestamp,
     public_time timestamp,
     duration    integer not null ,
-    description varchar(2000),
+    description varchar(8000),
     reviewer    bigint
         references project_user (mid)
 );
