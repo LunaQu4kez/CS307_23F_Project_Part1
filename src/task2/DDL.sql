@@ -3,12 +3,12 @@ create table project_user
     mid         bigint not null
         constraint user_pkey
             primary key,
-    name        varchar(400) not null ,
+    name        varchar(400) not null,
     sex         varchar(10),
     birthday    varchar(20),
-    level       integer,
+    level       integer not null,
     sign        varchar(5000),
-    identity    varchar(20)
+    identity    varchar(20) not null
 );
 
 create table project_videos
@@ -42,11 +42,11 @@ create table project_danmu
 
 create table project_following
 (
-    user_mid    bigint
+    up_mid    bigint
         references project_user(mid),
     fans_mid    bigint
         references project_user(mid),
-    primary key (user_mid, fans_mid)
+    primary key (up_mid, fans_mid)
 );
 
 create table project_like

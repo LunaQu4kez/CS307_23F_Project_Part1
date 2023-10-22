@@ -38,11 +38,82 @@ We use [Visio](https://visio.iruanhui.cn/?bd_vid=9042954634973670880) to draw th
 </p>
 
 ### 2. Table Design Description
-**toDo**: Finish the report mainly focus on 
-(1) What tables have been designed and the reasons 
-for this design (the reasons can be shorter) 
-(2) What is the relationship between these tables 
-(3) Why does this design conform to 3NF
+By analyzing the initial data, we gained some key information:  
+* "following" in user.csv usually has multiple mids of up.
+* "like", "coin", "favorite" and "view" in videos.csv usually has mutiple mids.
+* In the same video, the same person can send identical danmu at the same time.  
+
+This information results in tables that do not satisfy the three normal forms.
+In order to make the database design meet the three normal forms and be as easy to expand as possible, 
+we designed the following tables. 
+
+**project_user**  
+* `mid`: the uid of the user.
+* `name`: the name of the user.
+* `sex`: the sex of the user.
+* `birthday`: the birthday of the user.
+* `level`: the level of the user.
+* `sign`: the personal description.
+* `identity`: "user" or "superuser".
+  
+**project_following**
+* `up_mid`: the mid of up followed by fans.
+* `fans_mid`: the mid of the user following the up.
+  
+**project_video**
+* `BV`: the unique identification string of a video.
+* `title`: the name of the video.
+* `owner_mid`: the mid of the video owner.
+* `commit_time`: the time when the owner committed this video.
+* `review_time`: the time when the video was inspected by its reviewer
+* `public_time`: the time when the video was made public for all users.
+* `duration`: the video duration.
+* `description`: the brief text introduction given by the uploader.
+* `reviewr`: the mid of the video reviewer.
+
+**project_like**
+* `BV`: the video BV of the video liked.
+* `mid`: the mid of the user who liked the video.
+  
+**project_coin**
+* `BV`: the video BV of the video given the coins.
+* `mid`: the mid of the user who gave the coins to the video. 
+
+**project_favorite**
+* `BV`: the video BV of the video favorited.
+* `mid`: the mid of the user who favorited the video.
+
+**project_view**
+* `BV`: the video BV of the video watched.
+* `mid`: the mid of the user who watched the video.
+* `time`: last watch time duration of the user.
+
+**project_danmu**
+* `id`: the tag of danmu. (Increment primary key)
+* `BV`: the video BV of the video that the Danmu was sent.
+* `mid`: the mid of the user who sent the Danmu.
+* `time`: the time of the video that Danmu appears.
+* `content`: the content of the Danmu.  
+  
+Our design satisfies the need of following:
+* Follow the requirements of the three normal forms.
+  * Each property cannot contain multiple values or duplicate values.
+  * Every non-key attribute (column) is fully functionally dependent on the entire primary key.
+  * Each non-primary key property does not depend on other non-primary key properties.
+
+* Each table has its primary key.
+* Every table is included in a link. No isolated tables included.
+* Contain no circular links.
+* Each table has its own NOTNULL column and UNIQUE column.
+* Use appropriate types for different fields of data.
+
+### 3. Scalability
+The tables we've designed exhibit strong scalability:  
+* "project_following" can store all following ups' mid of users. 
+It's also very easy to add or delete new following. 
+Meanwhile, It can easily retrieve the list of users following this user.
+* "project_like", "project_coin" and "project_favorite" also have the scalability like "project_following".
+* "project_view" uses the composite primary key, which can make update the time easier.
 
 ## Task 3: Data Import
 
