@@ -4,7 +4,7 @@ create table project_user
         constraint user_pkey
             primary key,
     name        varchar(400) not null,
-    sex         varchar(10),
+    sex         varchar(10) not null,
     birthday    varchar(20),
     level       integer not null,
     sign        varchar(5000),
@@ -30,7 +30,7 @@ create table project_videos
 
 create table project_danmu
 (
-    id          integer,
+    id          integer not null,
     BV          varchar(400)
         references project_videos (BV),
     mid         bigint
@@ -42,46 +42,46 @@ create table project_danmu
 
 create table project_following
 (
-    up_mid    bigint
+    user_mid    bigint not null
         references project_user(mid),
-    fans_mid    bigint
+    follow_mid    bigint not null
         references project_user(mid),
-    primary key (up_mid, fans_mid)
+    primary key (user_mid, follow_mid)
 );
 
 create table project_like
 (
-    BV          varchar(400)
+    BV          varchar(400) not null
         references project_videos (BV),
-    mid         bigint
+    mid         bigint not null
          references project_user (mid),
     primary key (BV, mid)
 );
 
 create table project_coin
 (
-    BV          varchar(400)
+    BV          varchar(400) not null
         references project_videos (BV),
-    mid         bigint
+    mid         bigint not null
          references project_user (mid),
     primary key (BV, mid)
 );
 
 create table project_favorite
 (
-    BV          varchar(400)
+    BV          varchar(400) not null
         references project_videos (BV),
-    mid         bigint
+    mid         bigint not null
          references project_user (mid),
     primary key (BV, mid)
 );
 
 create table project_view
 (
-    BV          varchar(400)
+    BV          varchar(400) not null
         references project_videos (BV),
-    mid         bigint
+    mid         bigint not null
         references project_user (mid),
-    time        integer,
+    time        integer not null,
     primary key (BV, mid)
 );

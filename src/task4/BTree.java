@@ -1,5 +1,6 @@
 package task4;
 
+// The implementation is refer to Algorithms, 4th Edition by Robert Sedgewick and Kevin Wayne.
 public class BTree<Key extends Comparable<Key>, Value>  {
     private static final int M = 6;
     private Node root;
