@@ -1,26 +1,25 @@
 package task3;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.sql.*;
 
 public class UserReaderFaster {
-    private static final int  BATCH_SIZE = 500;
+    private static final int BATCH_SIZE = 500;
     private Connection con = null;
     private PreparedStatement stmt = null;
-    private ResultSet resultSet;
 
     private String host = "localhost";
     private String dbname = "CS307_proj1";
     private String user = "postgres";
     private String pwd = "12211655";
     private String port = "5432";
+
     public static void main(String[] args) {
         String filePath = "data\\users.csv";
         UserReaderFaster userReader = new UserReaderFaster();
-        //userReader.insertUser(filePath);
+        userReader.insertUser(filePath);
         userReader.insertFollowing(filePath);
     }
 
@@ -84,8 +83,8 @@ public class UserReaderFaster {
         closeDB();
 
 
-        long start,end;
-        start =System.currentTimeMillis();
+        long start, end;
+        start = System.currentTimeMillis();
         openDB();
         try {
             BufferedReader in = new BufferedReader(new FileReader(filePath));
@@ -103,7 +102,7 @@ public class UserReaderFaster {
                     result = processUser(line);
                     loadDataOfUser(result);
                     count++;
-                    if (count% BATCH_SIZE == 0){
+                    if (count % BATCH_SIZE == 0) {
                         stmt.executeBatch();
                         stmt.clearBatch();
                     }
@@ -114,7 +113,7 @@ public class UserReaderFaster {
                     line = in.readLine();
                 }
             }
-            if (count % BATCH_SIZE !=0){
+            if (count % BATCH_SIZE != 0) {
                 stmt.executeBatch();
             }
             con.commit();
@@ -140,7 +139,7 @@ public class UserReaderFaster {
         }
         closeDB();
         end = System.currentTimeMillis();
-        System.out.println("Total time: "+ (end-start) +" ms");
+        System.out.println("Total time: " + (end - start) + " ms");
     }
 
     private void insertFollowing(String filePath) {
@@ -148,8 +147,8 @@ public class UserReaderFaster {
         truncateFollowing();
         closeDB();
 
-        long start,end;
-        start =System.currentTimeMillis();
+        long start, end;
+        start = System.currentTimeMillis();
         openDB();
         try {
             BufferedReader in = new BufferedReader(new FileReader(filePath));
@@ -178,7 +177,7 @@ public class UserReaderFaster {
             con.commit();
             closeDB();
             end = System.currentTimeMillis();
-            System.out.println("Total time: "+ (end-start) +" ms");
+            System.out.println("Total time: " + (end - start) + " ms");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -287,15 +286,15 @@ public class UserReaderFaster {
             result[6] = following;
         }
 
-        if (firstArr[firstArr.length -1 ].charAt(firstArr[firstArr.length -1].length() - 5) == ',') {
+        if (firstArr[firstArr.length - 1].charAt(firstArr[firstArr.length - 1].length() - 5) == ',') {
             result[7][0] = "user";
         } else {
             result[7][0] = "superuser";
         }
-        if (result[3][0].endsWith("日")){
+        if (result[3][0].endsWith("日")) {
             String[] arr1 = result[3][0].split("月");
-            String str = arr1[0].length() == 1 ? "0"+arr1[0].substring(0,1) : arr1[0].substring(0,2);
-            str = arr1[1].length() == 2 ? str +"-"+ "0"+arr1[1].substring(0,1) : str +"-"+ arr1[1].substring(0,2);
+            String str = arr1[0].length() == 1 ? "0" + arr1[0].substring(0, 1) : arr1[0].substring(0, 2);
+            str = arr1[1].length() == 2 ? str + "-" + "0" + arr1[1].substring(0, 1) : str + "-" + arr1[1].substring(0, 2);
             result[3][0] = str;
         }
         return result;

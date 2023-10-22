@@ -1,15 +1,12 @@
 package task3;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.sql.*;
-import java.util.Arrays;
 
 public class UserReader {
     private Connection con = null;
     private PreparedStatement stmt = null;
-    private ResultSet resultSet;
 
     private String host = "localhost";
     private String dbname = "CS307_proj1";
@@ -20,7 +17,7 @@ public class UserReader {
     public static void main(String[] args) {
         String filePath = "data\\users.csv";
         UserReader userReader = new UserReader();
-        //userReader.insertUser(filePath);
+        userReader.insertUser(filePath);
         userReader.insertFollowing(filePath);
     }
 
@@ -79,7 +76,7 @@ public class UserReader {
         truncateUser();
         closeDB();
 
-        long start ,end;
+        long start, end;
         start = System.currentTimeMillis();
         openDB();
         try {
@@ -115,7 +112,7 @@ public class UserReader {
             e.printStackTrace();
         }
         end = System.currentTimeMillis();
-        System.out.println("Total time: "+ (end - start) + "ms");
+        System.out.println("Total time: " + (end - start) + "ms");
     }
 
     private void insertFollowing(String filePath) {
@@ -124,7 +121,7 @@ public class UserReader {
         closeDB();
 
 
-        long start ,end;
+        long start, end;
         start = System.currentTimeMillis();
         openDB();
         try {
@@ -155,7 +152,7 @@ public class UserReader {
             e.printStackTrace();
         }
         end = System.currentTimeMillis();
-        System.out.println("Total time: "+ (end - start) + "ms");
+        System.out.println("Total time: " + (end - start) + "ms");
     }
 
 
@@ -261,15 +258,15 @@ public class UserReader {
             result[6] = following;
         }
 
-        if (firstArr[firstArr.length -1 ].charAt(firstArr[firstArr.length -1].length() - 5) == ',') {
+        if (firstArr[firstArr.length - 1].charAt(firstArr[firstArr.length - 1].length() - 5) == ',') {
             result[7][0] = "user";
         } else {
             result[7][0] = "superuser";
         }
-        if (result[3][0].endsWith("日")){
+        if (result[3][0].endsWith("日")) {
             String[] arr1 = result[3][0].split("月");
-            String str = arr1[0].length() == 1 ? "0"+arr1[0].substring(0,1) : arr1[0].substring(0,2);
-            str = arr1[1].length() == 2 ? str +"-"+ "0"+arr1[1].substring(0,1) : str +"-"+ arr1[1].substring(0,2);
+            String str = arr1[0].length() == 1 ? "0" + arr1[0].substring(0, 1) : arr1[0].substring(0, 2);
+            str = arr1[1].length() == 2 ? str + "-" + "0" + arr1[1].substring(0, 1) : str + "-" + arr1[1].substring(0, 2);
             result[3][0] = str;
         }
         return result;
