@@ -20,8 +20,8 @@ public class UserReaderFaster {
     public static void main(String[] args) {
         String filePath = "data\\users.csv";
         UserReaderFaster userReader = new UserReaderFaster();
-        userReader.insertUser(filePath);
-//        userReader.insertFollowing(filePath);
+        //userReader.insertUser(filePath);
+        userReader.insertFollowing(filePath);
     }
 
     private void openDB() {
@@ -61,6 +61,7 @@ public class UserReaderFaster {
         try {
             stmt = con.prepareStatement(sql);
             stmt.execute();
+            con.commit();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -71,6 +72,7 @@ public class UserReaderFaster {
         try {
             stmt = con.prepareStatement(sql);
             stmt.execute();
+            con.commit();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -92,7 +94,7 @@ public class UserReaderFaster {
             String[][] result;
             long count = 0;
             stmt = con.prepareStatement("insert into project_user values (?,?,?,?,?,?,?)");
-            while ((line != null) && count <=500) {
+            while ((line != null)) {
                 try {
                     if (!line.endsWith("user")) {
                         line = line + "\n" + in.readLine();
@@ -146,6 +148,8 @@ public class UserReaderFaster {
         truncateFollowing();
         closeDB();
 
+        long start,end;
+        start =System.currentTimeMillis();
         openDB();
         try {
             BufferedReader in = new BufferedReader(new FileReader(filePath));
@@ -153,6 +157,7 @@ public class UserReaderFaster {
             String line = in.readLine();
             String[][] result;
             long count = 0;
+            stmt = con.prepareStatement("insert into project_following values (?,?)");
             while ((line != null)) {
                 try {
                     if (!line.endsWith("user")) {
@@ -160,8 +165,9 @@ public class UserReaderFaster {
                         continue;
                     }
                     result = processUser(line);
-                    stmt = con.prepareStatement("insert into project_following values (?,?)");
                     loadDataOfFollowing(result);
+                    stmt.executeBatch();
+                    stmt.clearBatch();
                     line = in.readLine();
                 } catch (Exception e) {
                     System.out.println("Insertion failure.");
@@ -169,7 +175,10 @@ public class UserReaderFaster {
                     line = in.readLine();
                 }
             }
+            con.commit();
             closeDB();
+            end = System.currentTimeMillis();
+            System.out.println("Total time: "+ (end-start) +" ms");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -211,7 +220,7 @@ public class UserReaderFaster {
                 stmt.setLong(1, Long.parseLong(result[0][0]));
                 for (int i = 0; i < result[6].length; i++) {
                     stmt.setLong(2, Long.parseLong(result[6][i]));
-                    stmt.executeUpdate();
+                    stmt.addBatch();
                 }
             }
         } catch (Exception e) {
