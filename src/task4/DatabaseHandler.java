@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.ResourceBundle;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class DatabaseHandler implements DataHandler {
     private Connection conn = null;
@@ -16,16 +18,24 @@ public class DatabaseHandler implements DataHandler {
     private static final int dataNum = dataTotalNum / threadNum;
     private static long cnt = 10000000000000000L;
 
+    private static String driver;
+    private static String ip;
+    private static String port;
+    private static String db_name;
+    private static String user;
+    private static String pw;
+    private static String url;
+
     public void openDB() {
         ResourceBundle bundle = ResourceBundle.getBundle("jdbc");
-        String driver = bundle.getString("driver");
-        String ip = bundle.getString("ip");
-        String port = bundle.getString("port");
-        String db_name = bundle.getString("db_name");
-        String user = bundle.getString("user");
-        String pw = bundle.getString("password");
+        driver = bundle.getString("driver");
+        ip = bundle.getString("ip");
+        port = bundle.getString("port");
+        db_name = bundle.getString("db_name");
+        user = bundle.getString("user");
+        pw = bundle.getString("password");
 
-        String url = "jdbc:postgresql://" + ip + ":" + port + "/" + db_name;
+        url = "jdbc:postgresql://" + ip + ":" + port + "/" + db_name;
         try {
             Class.forName(driver);
             conn = DriverManager.getConnection(url, user, pw);
@@ -258,40 +268,22 @@ public class DatabaseHandler implements DataHandler {
     }
 
     public void concurrencyMulti() {
-        Runnable[] runs = new UserThread[threadNum];
-        Thread[] threads = new Thread[threadNum];
-        long start = System.currentTimeMillis();
+        ExecutorService executorService = Executors.newFixedThreadPool(threadNum);
         for (int i = 0; i < threadNum; i++) {
-            runs[i] = new UserThread(false);
-            threads[i] = new Thread(runs[i]);
-            threads[i].start();
-            try {
-                threads[i].join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            UserThread userThread = new UserThread(false);
+            executorService.execute(userThread);
         }
-        long end = System.currentTimeMillis();
-        //System.out.println("Time cost " + (end - start) + " ms.");
-        System.out.println(end - start);
+        executorService.shutdown();
     }
 
     public void concurrencySingle() {
-        Runnable run = new UserThread(true);
-        Thread thread = new Thread(run);
-        long start = System.currentTimeMillis();
-        thread.start();
-        try {
-            thread.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        long end = System.currentTimeMillis();
-        //System.out.println("Time cost " + (end - start) + " ms.");
-        System.out.println(end - start);
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        UserThread userThread = new UserThread(true);
+        executorService.execute(userThread);
+        executorService.shutdown();
     }
 
-    private class UserThread implements Runnable {
+    private class UserThread extends Thread {
         List<Client.User> users;
         boolean single;
 
@@ -317,9 +309,13 @@ public class DatabaseHandler implements DataHandler {
         @Override
         public void run() {
             //System.out.println("run() execute");
-            String sql = "insert into project_user values(?, ?, ?, ?, ?, ?, ?)";
+            long start, end;
+
             try {
-                stmt = conn.prepareStatement(sql);
+                String sql = "insert into project_user values(?, ?, ?, ?, ?, ?, ?)";
+                Connection conn = DriverManager.getConnection(url, user, pw);
+                start = System.currentTimeMillis();
+                PreparedStatement stmt = conn.prepareStatement(sql);
                 for (int i = 0; i < dataNum * (single ? threadNum : 1); i++) {
                     Client.User user = users.get(i);
                     stmt.setLong(1, user.mid);
@@ -331,9 +327,16 @@ public class DatabaseHandler implements DataHandler {
                     stmt.setString(7, user.idt);
                     stmt.executeUpdate();
                 }
+                end = System.currentTimeMillis();
+                System.out.println(end - start);
+                if (stmt != null) {
+                    stmt.close();
+                }
+                conn.close();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
+
         }
     }
 

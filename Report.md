@@ -26,10 +26,6 @@ We use [Visio](https://visio.iruanhui.cn/?bd_vid=9042954634973670880) to draw th
 
 
 
-
-
-
-
 ## Task 2: Database Design
 
 ### 1. E-R Diagram By DataGrip
@@ -72,20 +68,13 @@ we designed the following tables.
 * `description`: the brief text introduction given by the uploader
 * `reviewr`: the `mid` of the video reviewer
 
-**project_like**
-* `BV`: the video `BV` of the video liked
-* `mid`: the `mid` of the user who liked the video
+**project_like, project_coin, project_favorite**
 
-**project_coin**
-* `BV`: the video `BV` of the video given the coins
-* `mid`: the `mid` of the user who gave the coins to the video.
-
-**project_favorite**
-
-* `BV`: the video `BV` of the video favored
-* `mid`: the `mid` of the user who favorite the video
+* `BV`: the video `BV` of the video liked / given the coins / favored
+* `mid`: the `mid` of the user who liked / gave the coins / favored the video
 
 **project_view**
+
 * `BV`: the video `BV` of the video watched
 * `mid`: the `mid` of the user who watched the video
 * `time`: last watch time duration of the user
@@ -114,8 +103,6 @@ The tables we've designed exhibit strong scalability:
 * Table `project_following` can store all `mid` of following users. It's also very easy to add or delete new following. Meanwhile, it can easily retrieve the list of users following this user by keyword `group by`.
 * Table `project_like`, `project_coin` and `project_favorite` also have the scalability like `project_following` for the similar reason.
 * Table `project_view` uses self increasing primary key, which can make update the time easier.
-
-
 
 
 
@@ -152,6 +139,7 @@ If you want to replicate our import process, please **pay attention to** the fol
 
   ```java
   public void openDB() {
+      // Please modify the following strings
       String host = "localhost";
       String port = "5432";
       String db_name = "project1";
@@ -162,7 +150,6 @@ If you want to replicate our import process, please **pay attention to** the fol
       try {
           Class.forName("org.postgresql.Driver");
           conn = DriverManager.getConnection(url, user, pw);
-          conn.setAutoCommit(false);
       } catch (Exception e) {
           e.printStackTrace();
       }
@@ -175,7 +162,7 @@ The general steps to import data in scripts are as follows:
 
 1. Open database connection
 2. Use file I/O to read the data from `*.csv` files
-3. Do **extraordinary complex String operations** to get the information of every data
+3. Do **extraordinary complex String operations (we did NOT use any external library and only purely manual cutting and extracting string information which is a huge work, the relating script files are in the folder `task3`)** to get the information of every data
 4. Use `Java` to execute `sql` sentence to import data into tables
 5. Close database connection
 
@@ -190,7 +177,7 @@ The number of data entries of every table is as follows.
 | `project_coin`      |                        |
 | `project_favorite`  |                        |
 | `project_view`      |                        |
-| `project_danmu`     | 12478994               |
+| `project_danmu`     | 12478994 (12478996)    |
 
 **Notice that in `danmu.csv`, there are 2 danmu with no content (which means the content is NULL not even space). We think such data is meaningless so we didn't insert these data into the table.**
 
@@ -207,47 +194,6 @@ For the first direction, we put `stmt = conn.prepareStatement(sql);` outside whi
 
 For the second direction, we close auto commit using `conn.setAutoCommit(false);` and we add a constant `BATCH_SIZE` which means the number of data we execute and commit one time. Here is an example, the code at the top is the one before optimize and the one at the bottom is after optimize.
 
-```java
-// before optimize
-while (line != null) {
-    try {
-        if (!line.endsWith("user")) {
-            line = line + "\n" + in.readLine();
-            continue;
-        }
-        result = processUser(line);
-        stmt = con.prepareStatement("insert into project_following values (?,?)");
-        loadDataOfFollowing(result);
-        line = in.readLine();
-    } catch (Exception e) {
-        System.out.println("Insertion failure.");
-        System.out.println(line);
-        line = in.readLine();
-    }
-}
-
-// after optimize
-stmt = con.prepareStatement("insert into project_following values (?,?)");
-while (line != null) {
-    try {
-        if (!line.endsWith("user")) {
-            line = line + "\n" + in.readLine();
-            continue;
-        }
-        result = processUser(line);
-        loadDataOfFollowing(result);
-        stmt.executeBatch();
-        stmt.clearBatch();
-        line = in.readLine();
-    } catch (Exception e) {
-        System.out.println("Insertion failure.");
-        System.out.println(line);
-        line = in.readLine();
-    }
-}
-con.commit();
-```
-
 For each table, we test the time cost of loading all the data **for 5 times** and calculate the average. We can see the result as follows. Additionally, the test environment information is in Task 4.
 
 | Table                                                        | Time Cost before Optimize | Time Cost after Optimize | Optimization Rate |
@@ -255,17 +201,13 @@ For each table, we test the time cost of loading all the data **for 5 times** an
 | `project_user`                                               | 6810 ms ≈ 6.8 s           | 1827 ms ≈ 1.8 s          | 377%              |
 | `project_following`                                          | 685435 ms ≈ 11.4 min      | 103531 ms ≈ 1.73 min     | 659%              |
 | `project_videos`                                             | 130712 ms ≈ 2.16 min      |                          |                   |
-| `project_like`, `project_coin`, `project_favorite`, `project_view` |                           |                          |                   |
+| `project_like` & `project_coin` & `project_favorite` & `project_view` |                           |                          |                   |
 | `project_danmu`                                              | 1549102 ms ≈ 25.8 min     | 99074 ms ≈ 1.65 min      | 1563%             |
 
 #### Analysis
 
 - If we put `stmt = conn.prepareStatement(sql);` outside while loop. The pre-compile sentence will be **only run once and use many times**, so the efficiency will highly increased.
 - The second optimization utilizes the batch processing mechanism of the database. If each SQL statement needs to be implemented once using `JDBC`, the code will be lengthy and too many database operations will be executed. **If several SQL statements are combined into a batch and transferred to the database for execution at once, it can reduce the number of transfers and improve efficiency**.
-
-
-
-
 
 
 
@@ -338,25 +280,7 @@ This is a script only use `java.io` and `java.util` to implements the method in 
 Despite the methods implemented from the interface `DataHandler`, there are two additional method called `openDB()` and `closeDB()` which means get and close the connection between program and database.
 
 #### Client.java
-This is the class that we run our script so it is called `Client`. The `main` method in this class is below. 
-```java
-public class Client {
-    public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        FileHandler fh = new FileHandler();
-        DatabaseHandler dh = new DatabaseHandler();
-        int opt = sc.nextInt();
-        if (8 <= opt && opt <= 11) getMid();
-        if (opt == 8) randomGenerateUser();
-        else if (opt == 9) randomFollow();
-        else if (opt == 10) randomUpdateSex();
-        else if (opt == 11) randomDeleteUser();
-        fileTest(fh, opt);
-        dbTest(dh, opt);
-    }
-}
-```
-We input our operation(an integer between `1` and `11`) id and if necessary, the script will generate random data, if not, it will run and calculate the time cost using file I/O or DBMS then print it out. **The time is not counted when `openDB()` and `closeDB()` is running. Similarly, the time of File I/O is only counted when doing operations on file.**
+This is the class that we run our script so it is called `Client`. We input our operation id (an integer between `1` and `11`) and if necessary, the script will generate random data, if not, it will run and calculate the time cost using file I/O or DBMS then print it out. **The time is not counted when `openDB()` and `closeDB()` is running. Similarly, the time of File I/O is only counted when doing operations on file.**
 
 #### jdbc.properties
 A property file that contains some necessary information to connect to DBMS. Information contains 
@@ -408,9 +332,6 @@ Also, we test each sentence for 5 times, and the result are in the below graph. 
 </p>
 
 
-
-
-
 #### Multi-table Query
 
 There is a query relating to table `project_user` and `project_following` that return the `name` of user who has the most followers. And here is the query sentence.
@@ -428,55 +349,34 @@ The result is as follows. We can find that: **The efficiency of DBMS is not affe
 
 
 
-#### Insert
-There are two insert sentence tested in this part, including insert an user and insert a follower to an user. The `DML` are as follow. The seven `?` in the first sentence respectively representing `mid`, `name`, `sex`, `birthday`, `level`, `sign` and `identity`. Also, the two `?` in the second sentence respectively representing `up_mid` and `fans_mid`. **Only when there is no data in buffer stream, the time of file io stops.**
+#### Insert & Update & Delete
+There are two insert sentence tested in this part, including insert an user and insert a follower to an user. **Only when there is no data in buffer stream, the time of File I/O stops.** We use the third `DML` sentence to test update operation. The two `?` respectively representing `sex` and `mid` this two `varchar` field. We use the fourth `DML` sentence to test delete operation. The `?` in the sentence means `mid` this field.
 ```sql
 1. insert into project_user values(?, ?, ?, ?, ?, ?, ?)
 2. insert into project_following values(?, ?)
+3. update project_user set sex = ? where mid = ?
+4. delete from project_user where mid = ?
 ```
 
 All inserted data is generate randomly by methods in class `Client`.  **The data size of this two test are both 1000**, that is, we will test 5 times and each time we insert 1000 random data into the corresponding table. The result of this two insert sentence test is below. 
 
+**We find that in the first inert operation, File I/O does better than DBMS. This may because if we want to insert an `user`, we just need to append a single line at the end of the file and this is very fast. But if we want to add a follower to one user, we need to rewrite the whole file. And in the two insert operations, DBMS takes about the same amount of time which reflect DBMS Has good stability.**
+
 <p float="none">
   <img src="pic\\task4\\4_4.png" width="800" />
 </p>
-
-**We find that in the first inert operation, File I/O does better than DBMS. This may because if we want to insert an `user`, we just need to append a single line at the end of the file and this is very fast. But if we want to add a follower to one user, we need to rewrite the whole file. And in the two insert operations, DBMS takes about the same amount of time which reflect DBMS Has good stability.**
-
-
-
-
-#### Update
-We use the following `DML` sentence to test update operation. The two `?` respectively representing `sex` and `mid` this two `varchar` field.
-```sql
-update project_user set sex = ? where mid = ?
-```
-
 All updated data is generate randomly by methods in class `Client`.  **Each time we update 500 users `sex` and we test for 5 times.** The result of this test is below. **File I/O cost much more time than DBMS. This is similarly to the second insert operation, if we want to update an user's `sex` we need to rewrite the whole file which cost more time.** 
-
-<p float="none">
-  <img src="pic\\task4\\4_5.png" width="400" />
-</p>
-
-
-
-
-#### Delete
-We use the following `DML` sentence to test delete operation. The `?` in the sentence means `mid` this field.
-```sql
-delete from project_user where mid = ?
-```
 
 The user we delete each time is chosen randomly and the users deleted in file and database in one test are the same. **Each time we delete 500 users and we test for 5 times.** The result of this test is as follows. **The same as insert and update, the delete operation of File I/O is far more slower than DBMS.** This is because if we want to delete a data with File I/O, we need to rewrite the whole file, which cost a large amount of time. 
 
 <p float="none">
-  <img src="pic\\task4\\4_6.png" width="400" />
+  <img src="pic\\task4\\4_7.png" width="800" />
 </p>
 
 
 
-
 ### 5. Comparison between DBMS with Indexes and File I/O with B-Tree
+
 According to the [`postgresql` docs](http://www.postgres.cn/docs/12/indexes-types.html), `postgresql` has an index system implemented by B-tree, which can increase the efficiency of some operations. So we can compare DBMS indexes with `Java` implemented B-tree.
 
 In this part, we compare the index of the primary key in `project_user` and File I/O with B-Tree. Since the the primary key of a table has native index, we do not need to add extra index to the table. 
@@ -488,23 +388,12 @@ public class BTree<Key extends Comparable<Key>, Value>  {
 	private static final class Node {
         private int m;
         private Entry[] children;
-
-        private Node(int k) {
-            m = k;
-            children = new Entry[M];
-        }
     }
 
     private static class Entry {
         private Comparable key;
         private Object val;
         private Node next;
-
-        public Entry(Comparable key, Object val, Node next) {
-            this.key  = key;
-            this.val  = val;
-            this.next = next;
-        }
     }
     
     public Value get(Key key);
@@ -540,29 +429,27 @@ We will mainly compare the efficiency of `JDBC` and `PDBC` in this part includin
 
 
 ### 8. Concurrency Test
-To test the concurrency of our DBMS, we use multi-thread to simultaneously perform insert operations on the DBMS. There are two method added in class `DatabaseHandler` which are `concurrencyMulti()` and `concurrencySingle()`, respectively representing multi-thread and single-thread insertion. Then a new client is created called `ConcurrencyTest.java` that has been pasted below.
+To test the concurrency of our DBMS, we use multi-thread to simultaneously perform insert operations on the DBMS. There are two method added in class `DatabaseHandler` which are `concurrencyMulti()` and `concurrencySingle()` which have been pasted below, respectively representing multi-thread and single-thread insertion. We use `java.util.concurrent.ExecutorService` to implement concurrent processing. Then a new client is created called `ConcurrencyTest.java` which is used to test the script.
 ```java
-public class ConcurrencyTest {
-    public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        int opt = sc.nextInt();
-        DatabaseHandler dh = new DatabaseHandler();
-        dh.openDB();
-        switch (opt) {
-            case 1:
-                dh.concurrencySingle();
-                break;
-            case 2:
-                dh.concurrencyMulti();
-                break;
-        }
-        dh.closeDB();
+public void concurrencyMulti() {
+    ExecutorService executorService = Executors.newFixedThreadPool(threadNum);
+    for (int i = 0; i < threadNum; i++) {
+        UserThread userThread = new UserThread(false);
+        executorService.execute(userThread);
     }
+    executorService.shutdown();
+}
+
+public void concurrencySingle() {
+    ExecutorService executorService = Executors.newSingleThreadExecutor();
+    UserThread userThread = new UserThread(true);
+    executorService.execute(userThread);
+    executorService.shutdown();
 }
 ```
 We set the total number of data is `100000`, and use `1`,  `5`,  `10`,  `20`,  `50` threads to test the time cost. We test each condition for `5` times and the result is the average of them. 
 
-The result is as follows. The figure on the left shows time cost of each number of threads (we called this one condition) and the x-axis means the first to the fifth time we tested. It is easy to figure out that the **average time of each condition is almost equal**, although more threads cost a bit more time. We also observed that **single thread is more instable**, with the lowest time cost and highest time cost among all. **So we conclude that the concurrency of the DBMS is good because more threads will not significantly decrease its efficiency.** 
+The result is as follows. The figure on the left shows time cost of each number of threads (we called this one condition) and the x-axis means the first to the fifth time we tested. It is easy to figure out that **the more threads we use, the less time it will cost**. **So we conclude that the concurrency of the DBMS is good because more threads significantly decrease its time cost.** 
 
 The figure on the right is a line chart which shows the time cost of different condition deal with different size of data. From the graph, **all condition are extremely close to linear**, with single thread cost just a bit less time. **This means even more threads and more data, DBMS will not cost extra time so the concurrency of DBMS is good.**
 

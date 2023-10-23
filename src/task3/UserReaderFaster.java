@@ -11,9 +11,9 @@ public class UserReaderFaster {
     private PreparedStatement stmt = null;
 
     private String host = "localhost";
-    private String dbname = "CS307_proj1";
+    private String dbname = "project1";
     private String user = "postgres";
-    private String pwd = "12211655";
+    private String pwd = "123456";
     private String port = "5432";
 
     public static void main(String[] args) {
