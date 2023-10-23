@@ -26,7 +26,7 @@ public class VideosReader {
     private String port = "5432";
     private static String filePath = "data\\videos.csv";
 
-    private static int TEST_CASE = 100;
+    private static int TEST_CASE = 100;  //represent the number of videos are read when the tables are inserted
     //Inserting in project_videos table takes about 130s. Don't need to limit the number of cases.
     //But inserting in other tables takes a huge amount of time. So the limit of numbers is helpful.
 
