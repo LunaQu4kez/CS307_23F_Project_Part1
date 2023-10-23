@@ -121,8 +121,147 @@ The tables we've designed exhibit strong scalability:
 
 ## Task 3: Data Import
 
+### 1. Script Description
+
+In this task, we have 6 script files. `UserReader.java`, `VideosReader.java`, `DanmuReader.java` are the scripts we used to import data at the beginning. `UserReaderFaster.java`, `VideosReaderFaster.java`, `DanmuReaderFaster.java` are the scripts we after our optimization. 
+
+If you want to replicate our import process, please **pay attention to** the following tips:
+
+- Your project structure should be like this and run the scripts in `IntelliJ IDEA`, or file path may cause some exceptions.
+
+  ```
+  CS307_23F_Project_Part1
+  │
+  ├── data
+  │   │   users.csv
+  │   │   videos.csv
+  │   └── danmu.csv
+  │
+  └── src
+      └── task3
+          └── *.java
+  ```
+
+- The first three script may run slowly, **please patiently waiting** until the program runs over.
+
+- You should first run `DDL.sql` in task 2 to create tables, then you can run the scripts in this task.
+
+- You should first run `User*.java`, then `Videos*.java` and `Danmu*.java` at last, otherwise there will occur some exceptions relating to violation of foreign key constraints.
+
+- You should modify `host`, `port`, `db_name`, `user`, `pw` to your own information in every script's `openDB()` method.
+
+  ```java
+  public void openDB() {
+      String host = "localhost";
+      String port = "5432";
+      String db_name = "project1";
+      String user = "postgres";
+      String pw = "123456";
+  
+      String url = "jdbc:postgresql://" + host + ":" + port + "/" + db_name;
+      try {
+          Class.forName("org.postgresql.Driver");
+          conn = DriverManager.getConnection(url, user, pw);
+          conn.setAutoCommit(false);
+      } catch (Exception e) {
+          e.printStackTrace();
+      }
+  }
+  ```
+
+Follow the above tips and run the `main(String[] args)` method in each script, the data will be imported to your database.
+
+The general steps to import data in scripts are as follows:
+
+1. Open database connection
+2. Use file I/O to read the data from `*.csv` files
+3. Do **extraordinary complex String operations** to get the information of every data
+4. Use `Java` to execute `sql` sentence to import data into tables
+5. Close database connection
+
+The number of data entries of every table is as follows.
+
+| Table               | Number of data entries |
+| ------------------- | ---------------------- |
+| `project_user`      | 37881                  |
+| `project_following` | 5958770                |
+| `project_videos`    | 7865                   |
+| `project_like`      |                        |
+| `project_coin`      |                        |
+| `project_favorite`  |                        |
+| `project_view`      |                        |
+| `project_danmu`     | 12478994               |
+
+**Notice that in `danmu.csv`, there are 2 danmu with no content (which means the content is NULL not even space). We think such data is meaningless so we didn't insert these data into the table.**
 
 
+
+### 2. Script Optimization
+
+There are two main optimization directions for us :
+
+1. Pre-compile SQL statements once and execute multiple times
+2. Insert data in batches
+
+For the first direction, we put `stmt = conn.prepareStatement(sql);` outside while loop.
+
+For the second direction, we close auto commit using `conn.setAutoCommit(false);` and we add a constant `BATCH_SIZE` which means the number of data we execute and commit one time. Here is an example, the code at the top is the one before optimize and the one at the bottom is after optimize.
+
+```java
+// before optimize
+while (line != null) {
+    try {
+        if (!line.endsWith("user")) {
+            line = line + "\n" + in.readLine();
+            continue;
+        }
+        result = processUser(line);
+        stmt = con.prepareStatement("insert into project_following values (?,?)");
+        loadDataOfFollowing(result);
+        line = in.readLine();
+    } catch (Exception e) {
+        System.out.println("Insertion failure.");
+        System.out.println(line);
+        line = in.readLine();
+    }
+}
+
+// after optimize
+stmt = con.prepareStatement("insert into project_following values (?,?)");
+while (line != null) {
+    try {
+        if (!line.endsWith("user")) {
+            line = line + "\n" + in.readLine();
+            continue;
+        }
+        result = processUser(line);
+        loadDataOfFollowing(result);
+        stmt.executeBatch();
+        stmt.clearBatch();
+        line = in.readLine();
+    } catch (Exception e) {
+        System.out.println("Insertion failure.");
+        System.out.println(line);
+        line = in.readLine();
+    }
+}
+con.commit();
+```
+
+For each table, we test the time cost of loading all the data **for 5 times** and calculate the average. We can see the result as follows. Additionally, the test environment information is in Task 4.
+
+| Table                                                        | Time Cost before Optimize | Time Cost after Optimize | Optimization Rate |
+| ------------------------------------------------------------ | ------------------------- | ------------------------ | ----------------- |
+| `project_user`                                               | 6810 ms ≈ 6.8 s           | 1827 ms ≈ 1.8 s          | 377%              |
+| `project_following`                                          | 685435 ms ≈ 11.4 min      | 103531 ms ≈ 1.73 min     | 659%              |
+| `project_videos`                                             | 130712 ms ≈ 2.16 min      |                          |                   |
+| `project_like`, `project_coin`, `project_favorite`, `project_view` |                           |                          |                   |
+| `project_danmu`                                              | 1549102 ms ≈ 25.8 min     | 99074 ms ≈ 1.65 min      | 1563%             |
+
+#### Analysis
+
+- If we put `stmt = conn.prepareStatement(sql);` outside while loop. The pre-compile sentence will be **only run once and use many times**, so the efficiency will highly increased.
+- The second optimization utilizes the batch processing mechanism of the database. If each SQL statement needs to be implemented once using `JDBC`, the code will be lengthy and too many database operations will be executed. **If several SQL statements are combined into a batch and transferred to the database for execution at once, it can reduce the number of transfers and improve efficiency**.
 
 
 
@@ -166,7 +305,7 @@ CS307_23F_Project_Part1
 
 ### 2. Test Description
 
-In this task, we mainly use the data in file `user.csv`, so we mainly focus on table `project_user` and `project_follow`. In the basic part, we will test some DQL and some DML including insert, update, delete operations then compare them with `java.io`. In the advanced task, we will compare DBMS with indexes with Java implemented `B-tree`, `B+tree`; using multi-user and multi-threading to test concurrency; comparing `postgresql` with `MySQL`; comparing `JDBC` with `Python Database Connection`.
+In this task, we mainly use the data in file `user.csv`, so we mainly focus on table `project_user` and `project_follow`. In the basic part, we will test some DQL and some DML including insert, update, delete operations then compare them with `java.io`. In the advanced task, we will compare DBMS with indexes with Java implemented `B-tree`; using multi-user and multi-threading to test concurrency; comparing `postgresql` with `MySQL`; comparing `JDBC` with `Python Database Connection`.
 
 
 
