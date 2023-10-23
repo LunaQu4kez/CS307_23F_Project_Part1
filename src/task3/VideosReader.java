@@ -24,11 +24,12 @@ public class VideosReader {
     private String user = "postgres";
     private String pwd = "12211655";
     private String port = "5432";
+    private static String filePath = "data\\videos.csv";
 
     public static void main(String[] args) {
-        String filePath = "data\\videos.csv";
         VideosReader reader = new VideosReader();
-        reader.insertVideos(filePath);
+        //reader.insertVideos(filePath);
+        reader.insertLike(filePath);
     }
 
     private void openDB() {
@@ -71,6 +72,44 @@ public class VideosReader {
         }
     }
 
+    public void truncateLike() {
+        String sql = "truncate table project_like cascade";
+        try {
+            stmt = con.prepareStatement(sql);
+            stmt.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    public void truncateCoin() {
+        String sql = "truncate table project_coin cascade";
+        try {
+            stmt = con.prepareStatement(sql);
+            stmt.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    public void truncateFav() {
+        String sql = "truncate table project_favorite cascade";
+        try {
+            stmt = con.prepareStatement(sql);
+            stmt.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void truncateView() {
+        String sql = "truncate table project_view cascade";
+        try {
+            stmt = con.prepareStatement(sql);
+            stmt.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void insertVideos(String filePath) {
         openDB();
         truncateVideos();
@@ -81,7 +120,7 @@ public class VideosReader {
         int count = 0;
         try {
             BufferedReader in = new BufferedReader(new FileReader(filePath));
-            FileWriter out = new FileWriter("data\\video3.txt");
+//            FileWriter out = new FileWriter("data\\video3.txt");
             in.readLine();
             String line = in.readLine();
             String[][] result;
@@ -100,8 +139,8 @@ public class VideosReader {
                 } catch (Exception e) {
                     System.out.println("Insertion failure.");
                     count++;
-                    out.write(line);
-                    out.write("\n");
+//                    out.write(line);
+//                    out.write("\n");
                     line = in.readLine();
                 }
 
@@ -111,10 +150,191 @@ public class VideosReader {
             e.printStackTrace();
         }
         end = System.currentTimeMillis();
-        System.out.println("Total time: " + (end - start) + "ms");
+        System.out.println("Total time of video insertion: " + (end - start) + "ms");
         System.out.println(count);
 
     }
+    private void insertLike(String filePath) {
+        openDB();
+        truncateLike();
+        closeDB();
+
+        long start, end;
+        start = System.currentTimeMillis();
+        openDB();
+        int count = 0;
+        try {
+            BufferedReader in = new BufferedReader(new FileReader(filePath));
+//            FileWriter out = new FileWriter("data\\video3.txt");
+            in.readLine();
+            String line = in.readLine();
+            String[][] result;
+
+            while ((line != null) ) {
+                try {
+                    if (!line.endsWith(")]\"")) {
+                        line = line + "\n" + in.readLine();
+                        continue;
+                    }
+                    result = processVideo(line);
+                    stmt = con.prepareStatement("insert into project_like values (?,?)");
+                    loadDataOfLike(result);
+                    line = in.readLine();
+
+                } catch (Exception e) {
+                    System.out.println("Insertion failure.");
+                    count++;
+//                    out.write(line);
+//                    out.write("\n");
+                    line = in.readLine();
+                }
+
+            }
+            closeDB();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        end = System.currentTimeMillis();
+        System.out.println("Total time of like insertion: " + (end - start) + "ms");
+        System.out.println(count);
+
+    }
+    private void insertCoin(String filePath) {
+        openDB();
+        truncateCoin();
+        closeDB();
+
+        long start, end;
+        start = System.currentTimeMillis();
+        openDB();
+        int count = 0;
+        try {
+            BufferedReader in = new BufferedReader(new FileReader(filePath));
+//            FileWriter out = new FileWriter("data\\video3.txt");
+            in.readLine();
+            String line = in.readLine();
+            String[][] result;
+
+            while ((line != null) ) {
+                try {
+                    if (!line.endsWith(")]\"")) {
+                        line = line + "\n" + in.readLine();
+                        continue;
+                    }
+                    result = processVideo(line);
+                    stmt = con.prepareStatement("insert into project_coin values (?,?)");
+                    loadDataOfCoin(result);
+                    line = in.readLine();
+
+                } catch (Exception e) {
+                    System.out.println("Insertion failure.");
+                    count++;
+//                    out.write(line);
+//                    out.write("\n");
+                    line = in.readLine();
+                }
+
+            }
+            closeDB();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        end = System.currentTimeMillis();
+        System.out.println("Total time of coin insertion: " + (end - start) + "ms");
+        System.out.println(count);
+
+    }
+    private void insertFav(String filePath) {
+        openDB();
+        truncateFav();
+        closeDB();
+
+        long start, end;
+        start = System.currentTimeMillis();
+        openDB();
+        int count = 0;
+        try {
+            BufferedReader in = new BufferedReader(new FileReader(filePath));
+//            FileWriter out = new FileWriter("data\\video3.txt");
+            in.readLine();
+            String line = in.readLine();
+            String[][] result;
+
+            while ((line != null) ) {
+                try {
+                    if (!line.endsWith(")]\"")) {
+                        line = line + "\n" + in.readLine();
+                        continue;
+                    }
+                    result = processVideo(line);
+                    stmt = con.prepareStatement("insert into project_favorite values (?,?)");
+                    loadDataOfFav(result);
+                    line = in.readLine();
+
+                } catch (Exception e) {
+                    System.out.println("Insertion failure.");
+                    count++;
+//                    out.write(line);
+//                    out.write("\n");
+                    line = in.readLine();
+                }
+
+            }
+            closeDB();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        end = System.currentTimeMillis();
+        System.out.println("Total time of favorite insertion: " + (end - start) + "ms");
+        System.out.println(count);
+
+    }
+    private void insertView(String filePath) {
+        openDB();
+        truncateView();
+        closeDB();
+
+        long start, end;
+        start = System.currentTimeMillis();
+        openDB();
+        int count = 0;
+        try {
+            BufferedReader in = new BufferedReader(new FileReader(filePath));
+//            FileWriter out = new FileWriter("data\\video3.txt");
+            in.readLine();
+            String line = in.readLine();
+            String[][] result;
+
+            while ((line != null) ) {
+                try {
+                    if (!line.endsWith(")]\"")) {
+                        line = line + "\n" + in.readLine();
+                        continue;
+                    }
+                    result = processVideo(line);
+                    stmt = con.prepareStatement("insert into project_view values (?,?,?)");
+                    loadDataOfView(result);
+                    line = in.readLine();
+
+                } catch (Exception e) {
+                    System.out.println("Insertion failure.");
+                    count++;
+//                    out.write(line);
+//                    out.write("\n");
+                    line = in.readLine();
+                }
+
+            }
+            closeDB();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        end = System.currentTimeMillis();
+        System.out.println("Total time of view insertion: " + (end - start) + "ms");
+        System.out.println(count);
+
+    }
+
 
     private void loadDataOfVideos(String[][] result) throws Exception {
 
@@ -138,8 +358,66 @@ public class VideosReader {
                 stmt.setLong(9,Long.parseLong(result[8][0]));
                 stmt.executeUpdate();
             }
+    }
 
+    private void loadDataOfLike(String[][] result) throws Exception{
+        try {
+            if (con != null){
+                stmt.setString(1,result[0][0]);
+                for (int i = 0; i < result[9].length; i++) {
+                    stmt.setLong(2,Long.parseLong(result[9][i]));
+                    stmt.execute();
+                }
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
 
+    }
+
+    private void loadDataOfCoin(String[][] result) throws Exception{
+        try {
+            if (con != null){
+                stmt.setString(1,result[0][0]);
+                for (int i = 0; i < result[10].length; i++) {
+                    stmt.setLong(2,Long.parseLong(result[10][i]));
+                    stmt.execute();
+                }
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+    }
+
+    private void loadDataOfFav(String[][] result) throws Exception{
+        try {
+            if (con != null){
+                stmt.setString(1,result[0][0]);
+                for (int i = 0; i < result[11].length; i++) {
+                    stmt.setLong(2,Long.parseLong(result[11][i]));
+                    stmt.execute();
+                }
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+    }
+    private void loadDataOfView(String[][] result) throws Exception{
+        try {
+            if (con != null){
+                stmt.setString(1,result[0][0]);
+                for (int i = 0; i < result[12].length; i++) {
+                    String[] view = result[12][i].split(", ");
+                    stmt.setLong(2,Long.parseLong(view[0].substring(1,view[0].length()-1)));
+                    stmt.setInt(3,Integer.parseInt(view[1]));
+                    stmt.execute();
+                }
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
 
     }
 
@@ -221,8 +499,4 @@ public class VideosReader {
         }
     }
 
-//    private static String[] returnView(){
-//
-//
-//    }
 }

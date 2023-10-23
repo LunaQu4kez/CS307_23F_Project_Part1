@@ -112,7 +112,7 @@ public class UserReader {
             e.printStackTrace();
         }
         end = System.currentTimeMillis();
-        System.out.println("Total time: " + (end - start) + "ms");
+        System.out.println("Total time of users insertion: " + (end - start) + "ms");
     }
 
     private void insertFollowing(String filePath) {
@@ -152,7 +152,7 @@ public class UserReader {
             e.printStackTrace();
         }
         end = System.currentTimeMillis();
-        System.out.println("Total time: " + (end - start) + "ms");
+        System.out.println("Total time of following insertion: " + (end - start) + "ms");
     }
 
 
