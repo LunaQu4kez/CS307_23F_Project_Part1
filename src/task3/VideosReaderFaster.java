@@ -19,9 +19,9 @@ public class VideosReaderFaster {
     private PreparedStatement stmt = null;
 
     private String host = "localhost";
-    private String dbname = "CS307_proj1";
+    private String dbname = "project1";
     private String user = "postgres";
-    private String pwd = "12211655";
+    private String pwd = "123456";
     private String port = "5432";
     private static String filePath = "data\\videos.csv";
     private static int TEST_CASE = 100;   //represent the number of videos are read when the tables are inserted
@@ -30,11 +30,11 @@ public class VideosReaderFaster {
 
     public static void main(String[] args) {
         VideosReaderFaster reader = new VideosReaderFaster();
-        reader.insertVideos(filePath);
+        //reader.insertVideos(filePath);
         reader.insertLike(filePath);
-        reader.insertCoin(filePath);
-        reader.insertFav(filePath);
-        reader.insertView(filePath);
+        //reader.insertCoin(filePath);
+        //reader.insertFav(filePath);
+        //reader.insertView(filePath);
     }
 
     private void openDB() {

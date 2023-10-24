@@ -110,7 +110,7 @@ The tables we've designed exhibit strong scalability:
 
 ### 1. Script Description
 
-In this task, we have 6 script files. `UserReader.java`, `VideosReader.java`, `DanmuReader.java` are the scripts we used to import data at the beginning. `UserReaderFaster.java`, `VideosReaderFaster.java`, `DanmuReaderFaster.java` are the scripts we after our optimization. 
+In this task, we have 7 script files. `UserReader.java`, `VideosReader.java`, `DanmuReader.java` are the scripts we used to import data at the beginning. `UserReaderFaster.java`, `VideosReaderFaster.java`, `DanmuReaderFaster.java` are the scripts we after our optimization and `VideosReaderMoreFaster.java` is the second edition over `VideosReaderFaster.java`. 
 
 If you want to replicate our import process, please **pay attention to** the following tips:
 
@@ -173,10 +173,10 @@ The number of data entries of every table is as follows.
 | `project_user`      | 37881                  |
 | `project_following` | 5958770                |
 | `project_videos`    | 7865                   |
-| `project_like`      |                        |
-| `project_coin`      |                        |
-| `project_favorite`  |                        |
-| `project_view`      |                        |
+| `project_like`      | 86757948               |
+| `project_coin`      | 80571520               |
+| `project_favorite`  | 79181895               |
+| `project_view`      | 163997974              |
 | `project_danmu`     | 12478994 (12478996)    |
 
 **Notice that in `danmu.csv`, there are 2 danmu with no content (which means the content is NULL not even space). We think such data is meaningless so we didn't insert these data into the table.**
@@ -196,18 +196,37 @@ For the second direction, we close auto commit using `conn.setAutoCommit(false);
 
 For each table, we test the time cost of loading all the data **for 5 times** and calculate the average. We can see the result as follows. Additionally, the test environment information is in Task 4.
 
-| Table                                                        | Time Cost before Optimize | Time Cost after Optimize | Optimization Rate |
-| ------------------------------------------------------------ | ------------------------- | ------------------------ | ----------------- |
-| `project_user`                                               | 6810 ms ≈ 6.8 s           | 1827 ms ≈ 1.8 s          | 377%              |
-| `project_following`                                          | 685435 ms ≈ 11.4 min      | 103531 ms ≈ 1.73 min     | 659%              |
-| `project_videos`                                             | 130712 ms ≈ 2.16 min      |                          |                   |
-| `project_like` & `project_coin` & `project_favorite` & `project_view` |                           |                          |                   |
-| `project_danmu`                                              | 1549102 ms ≈ 25.8 min     | 99074 ms ≈ 1.65 min      | 1563%             |
+| Table                                                | Time Cost before Optimize | Time Cost after Optimize | Optimization Rate |
+| ---------------------------------------------------- | ------------------------- | ------------------------ | ----------------- |
+| `project_user`                                       | 6810 ms ≈ 6.8 s           | 1827 ms ≈ 1.8 s          | 377%              |
+| `project_following`                                  | 685435 ms ≈ 11.4 min      | 103531 ms ≈ 1.73 min     | 659%              |
+| `project_videos`                                     | 130712 ms ≈ 2.16 min      | 47263 ms ≈ 47 s          | 276%              |
+| `project_like` & `project_coin` & `project_favorite` | Too long to wait          | Each about 2.2 to 2.5 h  |                   |
+| `project_view`                                       | Too long to wait          | About 8.3 h              |                   |
+| `project_danmu`                                      | 1549102 ms ≈ 25.8 min     | 99074 ms ≈ 1.65 min      | 1563%             |
+
+We find that our script still cost much time to import data into `project_like`, `project_coin`, `project_favorite` and `project_view`. So we continue optimize out script `VideosReaderFaster.java`. We have two main directions :
+
+1. Use external library `opencsv-5.8.jar` instead of out **extremely complex String operation**
+2. Use multi-thread to insert a large amount of data at the same time
+
+The `max_connections` of `postgresql` is 100 and the total number of videos is 7865, so we enable 92 threads that each one deal with the data of at most 85 videos. The result we tested is as follows :
+
+| Table              | Time Cost after the 1st Optimize | Time Cost after the 2nd Optimize | Optimization Rate |
+| ------------------ | -------------------------------- | -------------------------------- | ----------------- |
+| `project_like`     | About 2.5 h                      | 37 min                           | 405%              |
+| `project_coin`     | About 2.3 h                      | 33 min                           | 418%              |
+| `project_favorite` | About 2.2 h                      | 32 min                           | 413%              |
+| `project_view`     | About 8.3 h                      | 105 min                          | 474%              |
+
+We can see that the new optimization is very effective in improving the efficiency of these four tables.
 
 #### Analysis
 
 - If we put `stmt = conn.prepareStatement(sql);` outside while loop. The pre-compile sentence will be **only run once and use many times**, so the efficiency will highly increased.
 - The second optimization utilizes the batch processing mechanism of the database. If each SQL statement needs to be implemented once using `JDBC`, the code will be lengthy and too many database operations will be executed. **If several SQL statements are combined into a batch and transferred to the database for execution at once, it can reduce the number of transfers and improve efficiency**.
+- Usually, do some operations by external libraries may cost less time than do them manually.
+- **Effectively utilizing the concurrency of databases can greatly improve efficiency.** About the concurrency test, please find detailed information in Task 4. 
 
 
 
@@ -221,7 +240,7 @@ DBMS: `postgresql-12.5`
 OS: Windows 10 Home Chinese Version  
 Programing language: `Java 13.0.2`, `python 3.10.9`   
 IDE: `IntelliJ IDEA 2018.3.3` for Java, `Pycharm Community Edition 2021.3.1` for python 
-Additional libraries: `postgresql-42.6.0.jar`   
+Additional libraries: `postgresql-42.6.0.jar`, `opencsv-5.8.jar`, `commons-lang3-3.13.0.jar`   
 **The result of tests may be different in different test environment.**
 
 In order to replicate the experiment, you may need to construct the project 
