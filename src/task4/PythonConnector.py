@@ -1,26 +1,65 @@
+import csv
+
 import psycopg2
 import time
+
+from psycopg2.extras import execute_values
 
 HOST = "localhost"
 DATABASE = "CS307_proj1"
 USER = "postgres"
 PASSWORD = "12211655"
 PORT = "5432"
+OPEN_CLOSE_TIME = 10
+BATCH_SIZE = 1000
+'''It means testing open and close database 10 tims'''
 
 
-def connect():
+def test_connect():
     con = None
     try:
         start = time.time()
-        con = psycopg2.connect(database=DATABASE, user=USER, password=PASSWORD, host=HOST, port=PORT)
-        con.close()
+        for i in range(OPEN_CLOSE_TIME):
+            con = psycopg2.connect(database=DATABASE, user=USER, password=PASSWORD, host=HOST, port=PORT)
+            con.close()
         end = time.time()
         execution_time = (end - start) * 1000
         execution_time = round(execution_time, 2)
         print("Connect successfully.")
-        print(f"Use  {execution_time} ms")
+        print(f"Open and close db {OPEN_CLOSE_TIME} tims use {execution_time} ms")
     except(Exception, psycopg2.DatabaseError) as error:
         print(error)
 
-if __name__  == "__main__":
-    connect()
+
+def test_insert():
+    con = None
+    try:
+        con = psycopg2.connect(database=DATABASE, user=USER, password=PASSWORD, host=HOST, port=PORT)
+        cur = con.cursor()
+        sql = "truncate table project_user cascade"
+        cur.execute(sql)
+        con.commit()
+        cur.close()
+        con.close()
+    except(Exception, psycopg2.DatabaseError) as error:
+        print(error)
+    con = None
+    try:
+        con = psycopg2.connect(database=DATABASE, user=USER, password=PASSWORD, host=HOST, port=PORT)
+        cur = con.cursor()
+        with open('../data/users.csv', 'r') as f:
+            reader = csv.reader(f)
+            next(reader)
+            rows = [(row[0], row[1], row[2], row[3], row[4], row[5], row[7]) for row in reader]
+        for i in range(0, len(rows), 1000):
+            batch = rows[i:i + 1000]
+            execute_values(cur, "insert into project_user (col1, col2, col3, col4,col5,col6,col7) VALUES %s", batch)
+        con.commit()
+        cur.close()
+        con.close()
+    except(Exception, psycopg2.DatabaseError) as error:
+        print(error)
+
+
+if __name__ == "__main__":
+    test_insert()
