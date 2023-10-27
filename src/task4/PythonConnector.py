@@ -47,16 +47,21 @@ def test_insert():
     try:
         con = psycopg2.connect(database=DATABASE, user=USER, password=PASSWORD, host=HOST, port=PORT)
         cur = con.cursor()
-        with open('../data/users.csv', 'r') as f:
+        with open('..\\..\\data\\users.csv', 'r', encoding='utf-8') as f:
             reader = csv.reader(f)
             next(reader)
             rows = [(row[0], row[1], row[2], row[3], row[4], row[5], row[7]) for row in reader]
+        start = time.time()
         for i in range(0, len(rows), 1000):
             batch = rows[i:i + 1000]
-            execute_values(cur, "insert into project_user (col1, col2, col3, col4,col5,col6,col7) VALUES %s", batch)
+            execute_values(cur, "insert into project_user (mid, name, sex, birthday ,level, sign, identity) VALUES %s", batch)
         con.commit()
+        end = time.time()
         cur.close()
         con.close()
+        execution_time = (end - start) * 1000
+        execution_time = round(execution_time, 2)
+        print(f"Insert use {execution_time} ms")
     except(Exception, psycopg2.DatabaseError) as error:
         print(error)
 
