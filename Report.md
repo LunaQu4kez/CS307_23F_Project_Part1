@@ -236,7 +236,7 @@ We can see that the new optimization is very effective in improving the efficien
 CPU: 11th Gen Intel(R) Core(TM) i5-11300H @ 3.10GHz  
 RAM: 16.0 GB  
 **Software specification** 
-DBMS: `postgresql-12.5`  
+DBMS: `postgresql-12.5`, `MySQL-8.0.35.0`  
 OS: Windows 10 Home Chinese Version  
 Programing language: `Java 13.0.2`, `python 3.10.9`   
 IDE: `IntelliJ IDEA 2018.3.3` for Java, `Pycharm Community Edition 2021.3.1` for python 
@@ -400,7 +400,7 @@ According to the [`postgresql` docs](http://www.postgres.cn/docs/12/indexes-type
 
 In this part, we compare the index of the primary key in `project_user` and File I/O with B-Tree. Since the the primary key of a table has native index, we do not need to add extra index to the table. 
 
-The `Java` implemented B-tree is in `BTree.java`. The implementation is refer to Algorithms, 4th Edition by Robert Sedgewick and Kevin Wayne. Two inner class `Node` and `Entry` are used to construct the B-Tree. There are two `public` access permission method as follows which we can call them to insert and find data.
+The `Java` implemented B-tree is in `BTree.java`. **The implementation is refer to Algorithms, 4th Edition by Robert Sedgewick and Kevin Wayne.** Two inner class `Node` and `Entry` are used to construct the B-Tree. There are two `public` access permission method as follows which we can call them to insert and find data.
 
 ```java
 public class BTree<Key extends Comparable<Key>, Value>  {    
@@ -440,23 +440,19 @@ To comparison the different DBMS, we created 100, 1000 and 10000 pieces of inser
 
 In this part, we just use the `project_user` as testing object.  
 
+We inserted 100, 1000, and 10000 sets of data into `MySQL` and `postgresql` respectively (these data are all from the data given), and we compared the running time of `postgresql` and `MySQL` in inserting different data quantities, as shown in the following table:
 
-We inserted 100, 1000, and 10000 sets of data into Mysql and Postgresql respectively 
-(These data are all from the data given), 
-and we compared the running time of Postgresql and Mysql in inserting different data quantities, 
-as shown in the following table:
-
-| DBMS            | Insert 100 | Insert 1000 | Insert 10000 |
-|-----------------|------------|-------------|--------------|
-| Postgresql (ms) | 703        | 4270        | 848745       |
-| Mysql      (ms) | 1414       | 10476       | 2126432      |
+| DBMS              | Insert 100 | Insert 1000 | Insert 10000 |
+| ----------------- | ---------- | ----------- | ------------ |
+| `postgresql` (ms) | 703        | 4270        | 848745       |
+| `MySQL` (ms)      | 1414       | 10476       | 2126432      |
 
 
 Based on the 1000 sets of data, we carried out the update selection and delete operations respectively. 
 ```sql
 update project_user
 set birthday = '未知'
-where birthday is null ;
+where birthday is null;
 
 select mid, name, sex, birthday, sign, level, identity
 from project_user
@@ -469,7 +465,7 @@ where level < 6;
   <img src="pic\\task4\\6.png" width="400" />
 </p>
 
-By analyzing the above table and  line chart, it is not difficult to see that Postgresql is significantly better than Mysql to operate these DDL except for the deletion operation.
+By analyzing the above table and  line chart, it is not difficult to see that `postgresql` is significantly better than `MySQL` to operate these DDL except for the deletion operation.
 
 
 
