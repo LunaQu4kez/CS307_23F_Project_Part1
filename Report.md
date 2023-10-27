@@ -470,7 +470,57 @@ By analyzing the above table and  line chart, it is not difficult to see that `p
 
 
 ### 7. Comparison between Different Language Connecting Database
-We will mainly compare the efficiency of `JDBC` and `PDBC` in this part including connecting, query, insert, disconnecting this four part.
+We will mainly compare the efficiency of JDBC and PDBC in this part including connecting, disconnecting, insert, query this four part.
+
+In this part , we use  the `project_user` as the test case. 
+
+#### Connecting & disconnecting test
+
+We tested connecting and disconnecting 10 times, and tested each 5 times.
+
+|                    | 1    | 2    | 3    | 4    | 5    |
+| ------------------ | ---- | ---- | ---- | ---- | ---- |
+| JDBC use time(ms)  | 508  | 561  | 495  | 493  | 492  |
+| PDBC use time (ms) | 267  | 266  | 282  | 268  | 266  |
+
+It shows that PDBC is faster than JDBC when only connect the database and disconnect it. The possible reasons could be that `JDBC` use more mandatory exception handling and invoke more methods.
+
+#### Insert test
+
+We tested insert all data in `project_user`5 times. Both process a 1000 SQL statements in each batch.
+
+In Java, it recognizes `\` as an escape character and escapes the `,` after `\`, making errors. Therefore, we customized it as a character with ASCII code 1, successfully inserting all data. But this problem is not exist in python.
+
+```java
+CSVParserBuilder csvParserBuilder = new CSVParserBuilder();
+char c = (char) 1;
+csvParserBuilder.withEscapeChar(c);
+CSVReaderBuilder csvReaderBuilder = new CSVReaderBuilder(new FileReader(filePath));
+csvReaderBuilder.withCSVParser(csvParserBuilder.build());
+CSVReader in = csvReaderBuilder.build();
+```
+
+The code in Java is similar to task 3. The following is some Python code.
+
+```python
+with open('..\\..\\data\\users.csv', 'r', encoding='utf-8') as f:
+    reader = csv.reader(f)
+    next(reader)
+    rows = [(row[0], row[1], row[2], row[3], row[4], row[5], row[7]) for row in reader]
+start = time.time()
+for i in range(0, len(rows), 1000):
+    batch = rows[i:i + 1000]
+    execute_values(cur, "insert into project_user (mid, name, sex, birthday ,level, sign, identity) VALUES %s", batch)
+```
+
+|                    | 1    | 2    | 3    | 4    | 5    |
+| ------------------ | ---- | ---- | ---- | ---- | ---- |
+| JDBC use time(ms)  | 1321 | 1268 | 1314 | 1243 | 1246 |
+| PDBC use time (ms) | 651  | 685  | 660  | 639  | 650  |
+
+It shows that PDBC is about twice as fast as JDBC. The possible reasons could be that `pandas` and `OpenCSV` have differences in reading,  Java invokes more methods, performed more forced exception handling, and different processing and submitting SQL statements.
+
+#### Query test
 
 
 
