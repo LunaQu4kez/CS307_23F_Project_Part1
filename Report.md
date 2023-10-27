@@ -436,8 +436,40 @@ We may find that in this case File I/O with B-Tree cost much less time than with
 
 
 ### 6. Comparison between Different DBMS
-In this part, we will compare `postgresql` with `MySQL` in single table query, insert, update and delete.
+To comparison the different DBMS, we created 100, 1000 and 10000 pieces of insert sql statement respectively based on the data given.  
 
+In this part, we just use the `project_user` as testing object.  
+
+
+We inserted 100, 1000, and 10000 sets of data into Mysql and Postgresql respectively 
+(These data are all from the data given), 
+and we compared the running time of Postgresql and Mysql in inserting different data quantities, 
+as shown in the following table:
+
+| DBMS            | Insert 100 | Insert 1000 | Insert 10000 |
+|-----------------|------------|-------------|--------------|
+| Postgresql (ms) | 703        | 4270        | 848745       |
+| Mysql      (ms) | 1414       | 10476       | 2126432      |
+
+
+Based on the 1000 sets of data, we carried out the update selection and delete operations respectively. 
+```sql
+update project_user
+set birthday = '未知'
+where birthday is null ;
+
+select mid, name, sex, birthday, sign, level, identity
+from project_user
+where level > 3;
+
+delete from project_user
+where level < 6;
+```
+<p align="middle">
+  <img src="pic\\task4\\6.png" width="1000" />
+</p>
+
+By analyzing the above table and  line chart, it is not difficult to see that Postgresql is significantly better than Mysql to operate these DDL except for the deletion operation.
 
 
 
