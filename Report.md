@@ -466,7 +466,7 @@ delete from project_user
 where level < 6;
 ```
 <p align="middle">
-  <img src="pic\\task4\\6.png" width="1000" />
+  <img src="pic\\task4\\6.png" width="400" />
 </p>
 
 By analyzing the above table and  line chart, it is not difficult to see that Postgresql is significantly better than Mysql to operate these DDL except for the deletion operation.
