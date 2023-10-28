@@ -30,8 +30,8 @@ public class VideosReaderFaster {
 
     public static void main(String[] args) {
         VideosReaderFaster reader = new VideosReaderFaster();
-        //reader.insertVideos(filePath);
-        reader.insertLike(filePath);
+        reader.insertVideos(filePath);
+        //reader.insertLike(filePath);
         //reader.insertCoin(filePath);
         //reader.insertFav(filePath);
         //reader.insertView(filePath);

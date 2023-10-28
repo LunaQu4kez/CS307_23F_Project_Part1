@@ -58,11 +58,11 @@ public class DanmuReader {
 
     private void loadDanmu(String str) {
         String[] data = str.split(",");
-        if (data.length < 4) return;
         String bv = data[0];
         long mid = Long.parseLong(data[1]);
         float time = Float.parseFloat(data[2]);
-        StringBuilder content = new StringBuilder().append(data[3]);
+        StringBuilder content = new StringBuilder();
+        if (data.length >= 4) content.append(data[3]);
         for (int i = 4; i < data.length; i++) {
             content.append(data[i]);
         }

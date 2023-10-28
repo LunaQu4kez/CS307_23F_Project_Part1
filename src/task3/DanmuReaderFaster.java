@@ -63,11 +63,11 @@ public class DanmuReaderFaster {
     private void loadDanmu(String str) {
         try {
             String[] data = str.split(",");
-            if (data.length < 4) return;
             String bv = data[0];
             long mid = Long.parseLong(data[1]);
             double time = Double.parseDouble(data[2]);
-            StringBuilder content = new StringBuilder().append(data[3]);
+            StringBuilder content = new StringBuilder();
+            if (data.length >= 4) content.append(data[3]);
             for (int i = 4; i < data.length; i++) {
                 content.append(data[i]);
             }

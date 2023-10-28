@@ -177,9 +177,7 @@ The number of data entries of every table is as follows.
 | `project_coin`      | 80571520               |
 | `project_favorite`  | 79181895               |
 | `project_view`      | 163997974              |
-| `project_danmu`     | 12478994 (12478996)    |
-
-**Notice that in `danmu.csv`, there are 2 danmu with no content (which means the content is NULL not even space). We think such data is meaningless so we didn't insert these data into the table.**
+| `project_danmu`     | 12478996               |
 
 
 
@@ -203,7 +201,7 @@ For each table, we test the time cost of loading all the data **for 5 times** an
 | `project_videos`                                     | 130712 ms ≈ 2.16 min      | 47263 ms ≈ 47 s          | 276%              |
 | `project_like` & `project_coin` & `project_favorite` | Too long to wait          | Each about 2.2 to 2.5 h  |                   |
 | `project_view`                                       | Too long to wait          | About 8.3 h              |                   |
-| `project_danmu`                                      | 1549102 ms ≈ 25.8 min     | 99074 ms ≈ 1.65 min      | 1563%             |
+| `project_danmu`                                      | 1549102 ms ≈ 25.8 min     | 270607 ms ≈ 4.5 min      | 573%              |
 
 We find that our script still cost much time to import data into `project_like`, `project_coin`, `project_favorite` and `project_view`. So we continue optimize out script `VideosReaderFaster.java`. We have two main directions :
 
