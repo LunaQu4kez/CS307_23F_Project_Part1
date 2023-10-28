@@ -6,9 +6,9 @@ import time
 from psycopg2.extras import execute_values
 
 HOST = "localhost"
-DATABASE = "CS307_proj1"
+DATABASE = "project1"
 USER = "postgres"
-PASSWORD = "12211655"
+PASSWORD = "123456"
 PORT = "5432"
 OPEN_CLOSE_TIME = 10
 BATCH_SIZE = 1000
@@ -66,5 +66,51 @@ def test_insert():
         print(error)
 
 
+def test_query():
+    con = None
+    try:
+        con = psycopg2.connect(database=DATABASE, user=USER, password=PASSWORD, host=HOST, port=PORT)
+        cur = con.cursor()
+        sql = "select mid from project_user"
+        start = time.time()
+        cur.execute(sql)
+        rows = cur.fetchall()
+        end =time.time()
+        execution_time = (end - start) * 1000
+        execution_time = round(execution_time, 2)
+        print(f"Query mid for all users: {execution_time} ms")
+    except(Exception, psycopg2.DatabaseError) as e:
+        print(e)
+    con = None
+    try:
+        con = psycopg2.connect(database=DATABASE, user=USER, password=PASSWORD, host=HOST, port=PORT)
+        cur = con.cursor()
+        sql = "select mid from project_user where level > %s"
+        params = (3,)
+        start = time.time()
+        cur.execute(sql, params)
+        rows = cur.fetchall()
+        end = time.time()
+        execution_time = (end - start) * 1000
+        execution_time = round(execution_time, 2)
+        print(f"Query the mid of all users whose level is greater than 3: {execution_time} ms")
+    except(Exception, psycopg2.DatabaseError) as e:
+        print(e)
+    con = None
+    try:
+        con = psycopg2.connect(database=DATABASE, user=USER, password=PASSWORD, host=HOST, port=PORT)
+        cur = con.cursor()
+        sql = "select mid from project_user where cast(mid as varchar) like '24%'"
+        start = time.time()
+        cur.execute(sql)
+        rows = cur.fetchall()
+        end = time.time()
+        execution_time = (end - start) * 1000
+        execution_time = round(execution_time, 2)
+        print(f"Query the mid of all users whose mid starts with 24: {execution_time} ms")
+    except(Exception, psycopg2.DatabaseError) as e:
+        print(e)
+
+
 if __name__ == "__main__":
-    test_insert()
+    test_query()

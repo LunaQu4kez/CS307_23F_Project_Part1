@@ -11,6 +11,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 public class JavaConnector {
@@ -19,12 +20,13 @@ public class JavaConnector {
     private PreparedStatement stmt = null;
 
     private String host = "localhost";
-    private String dbname = "CS307_proj1";
+    private String dbname = "project1";
     private String user = "postgres";
-    private String pwd = "12211655";
+    private String pwd = "123456";
     private String port = "5432";
     private int openAndeCloseCaseNum = 10;
     private int BATCH_SIZE = 1000;
+    private ResultSet resultSet = null;
 
     private static String filePath = "data\\users.csv";
     //It means testing openDB and cloeDB 10 times.
@@ -32,7 +34,8 @@ public class JavaConnector {
     public static void main(String[] args) {
         JavaConnector connector = new JavaConnector();
         //testConnect(connector);
-        connector.insertUser(filePath);
+        //connector.insertUser(filePath);
+        testQuery(connector);
 
     }
 
@@ -47,6 +50,62 @@ public class JavaConnector {
         System.out.println("Open and close db " + connector.openAndeCloseCaseNum + " times use " +
                 (end - start) + " ms");
     }
+
+    private static ResultSet testQuery(JavaConnector connector){
+//        ArrayList <Long> list = new ArrayList<>();
+        long start, end;
+        String sql = "select mid from project_user";
+        connector.openDB();
+        try {
+            connector.con.setAutoCommit(true);
+            start = System.currentTimeMillis();
+            connector.stmt = connector.con.prepareStatement(sql);
+            connector.resultSet = connector.stmt.executeQuery();
+            end = System.currentTimeMillis();
+            System.out.println("Query mid for all users: "+(end -start) + " ms");
+//            while (connector.resultSet.next()){
+//                list.add(connector.resultSet.getLong("mid"));
+//            }
+//            System.out.println(list.size());
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        sql = "select mid from project_user where level > 3";
+        try {
+            start = System.currentTimeMillis();
+            connector.stmt = connector.con.prepareStatement(sql);
+            connector.resultSet = connector.stmt.executeQuery();
+            end = System.currentTimeMillis();
+            System.out.println("Query the mid of all users whose level is greater than 3: "+(end -start) + " ms");
+//           while (connector.resultSet.next()){
+//               list.add(connector.resultSet.getLong("mid"));
+//            }
+//            System.out.println(list.size());
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        sql = "select mid from project_user where cast(mid as varchar) like '24%'";
+        try {
+            start = System.currentTimeMillis();
+            connector.stmt = connector.con.prepareStatement(sql);
+            connector.resultSet = connector.stmt.executeQuery();
+            end = System.currentTimeMillis();
+            System.out.println("Query the mid of all users whose mid starts with 24: "+(end -start) + " ms");
+//           while (connector.resultSet.next()){
+//               list.add(connector.resultSet.getLong("mid"));
+//            }
+//            System.out.println(list.size());
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        connector.closeDB();
+
+        return connector.resultSet;
+    }
+
+
     private void openDB() {
         try {
             Class.forName("org.postgresql.Driver");
