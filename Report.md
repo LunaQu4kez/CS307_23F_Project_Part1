@@ -52,6 +52,8 @@ we designed the following tables.
 * `sign`: the personal description
 * `identity`: could only be "user" or "superuser"
 
+
+
 **project_following**
 
 * `user_mid`: the `mid` of the user who followed others
@@ -258,6 +260,7 @@ CS307_23F_Project_Part1
 └── src
     └── task4
         └── *.java
+        └── *.py
 ```
 
 
@@ -366,7 +369,17 @@ The result is as follows. We can find that: **The efficiency of DBMS is not affe
 
 
 
+
+
+
+
+
+
+
+
+
 #### Insert & Update & Delete
+
 There are two insert sentence tested in this part, including insert an user and insert a follower to an user. **Only when there is no data in buffer stream, the time of File I/O stops.** We use the third `DML` sentence to test update operation. The two `?` respectively representing `sex` and `mid` this two `varchar` field. We use the fourth `DML` sentence to test delete operation. The `?` in the sentence means `mid` this field.
 ```sql
 1. insert into project_user values(?, ?, ?, ?, ?, ?, ?)
@@ -434,9 +447,9 @@ We may find that in this case File I/O with B-Tree cost much less time than with
 
 
 ### 6. Comparison between Different DBMS
-To comparison the different DBMS, we created 100, 1000 and 10000 pieces of insert sql statement respectively based on the data given.  
+To comparison the different DBMS, we created 100, 1000 and 10000 pieces of insert sql statements respectively based on the data given.  
 
-In this part, we just use the `project_user` as testing object.  
+In this part, we just use table `project_user` as testing object.  
 
 We inserted 100, 1000, and 10000 sets of data into `MySQL` and `postgresql` respectively (these data are all from the data given), and we compared the running time of `postgresql` and `MySQL` in inserting different data quantities, as shown in the following table:
 
@@ -446,7 +459,7 @@ We inserted 100, 1000, and 10000 sets of data into `MySQL` and `postgresql` resp
 | `MySQL` (ms)      | 1414       | 10476       | 2126432      |
 
 
-Based on the 1000 sets of data, we carried out the update selection and delete operations respectively. 
+Based on the 1000 sets of data, we carried out the update selection and delete operations respectively. The result is in the following chart.
 ```sql
 update project_user
 set birthday = '未知'
@@ -463,29 +476,29 @@ where level < 6;
   <img src="pic\\task4\\6.png" width="400" />
 </p>
 
-By analyzing the above table and  line chart, it is not difficult to see that `postgresql` is significantly better than `MySQL` to operate these DDL except for the deletion operation.
+By analyzing the above table and  line chart, it is not difficult to see that **`postgresql` is significantly better than `MySQL` to operate these DQL except for the deletion operation**.
 
 
 
 ### 7. Comparison between Different Language Connecting Database
 We will mainly compare the efficiency of JDBC and PDBC in this part including connecting, disconnecting, insert, query this four part.
 
-In this part , we use  the `project_user` as the test case. 
+In this part , we use table `project_user` as the test case. 
 
-#### Connecting & disconnecting test
+#### Connecting & disconnecting comparison
 
 We tested connecting and disconnecting 10 times, and tested each 5 times.
 
-|                    | 1    | 2    | 3    | 4    | 5    |
-| ------------------ | ---- | ---- | ---- | ---- | ---- |
-| JDBC use time(ms)  | 508  | 561  | 495  | 493  | 492  |
-| PDBC use time (ms) | 267  | 266  | 282  | 268  | 266  |
+|                     | 1    | 2    | 3    | 4    | 5    |
+| ------------------- | ---- | ---- | ---- | ---- | ---- |
+| JDBC time cost (ms) | 508  | 561  | 495  | 493  | 492  |
+| PDBC time cost (ms) | 267  | 266  | 282  | 268  | 266  |
 
-It shows that PDBC is faster than JDBC when only connect the database and disconnect it. The possible reasons could be that `JDBC` use more mandatory exception handling and invoke more methods.
+**It shows that PDBC is faster than JDBC when only connect the database and disconnect it. The possible reasons could be that `JDBC` use more mandatory exception handling and invoke more methods.**
 
-#### Insert test
+#### Insert comparison
 
-We tested insert all data in `project_user`5 times. Both process a 1000 SQL statements in each batch.
+We tested insert all data in `project_user` for 5 times. Both process a 1000 SQL statements in each batch.
 
 In Java, it recognizes `\` as an escape character and escapes the `,` after `\`, making errors. Therefore, we customized it as a character with ASCII code 1, successfully inserting all data. But this problem is not exist in python.
 
@@ -498,7 +511,7 @@ csvReaderBuilder.withCSVParser(csvParserBuilder.build());
 CSVReader in = csvReaderBuilder.build();
 ```
 
-The code in Java is similar to task 3. The following is some Python code.
+The code in Java is similar to task 3. The following is main part of Python code.
 
 ```python
 with open('..\\..\\data\\users.csv', 'r', encoding='utf-8') as f:
@@ -511,14 +524,28 @@ for i in range(0, len(rows), 1000):
     execute_values(cur, "insert into project_user (mid, name, sex, birthday ,level, sign, identity) VALUES %s", batch)
 ```
 
-|                    | 1    | 2    | 3    | 4    | 5    |
-| ------------------ | ---- | ---- | ---- | ---- | ---- |
-| JDBC use time(ms)  | 1321 | 1268 | 1314 | 1243 | 1246 |
-| PDBC use time (ms) | 651  | 685  | 660  | 639  | 650  |
+|                     | 1    | 2    | 3    | 4    | 5    |
+| ------------------- | ---- | ---- | ---- | ---- | ---- |
+| JDBC time cost (ms) | 1321 | 1268 | 1314 | 1243 | 1246 |
+| PDBC time cost (ms) | 651  | 685  | 660  | 639  | 650  |
 
-It shows that PDBC is about twice as fast as JDBC. The possible reasons could be that `pandas` and `OpenCSV` have differences in reading,  Java invokes more methods, performed more forced exception handling, and different processing and submitting SQL statements.
+**It shows that PDBC is about twice as fast as JDBC. The possible reasons could be that `pandas` and `OpenCSV` have differences in reading,  Java invokes more methods, performed more forced exception handling, and different processing and submitting SQL statements.**
 
-#### Query test
+#### Query comparison
+
+In this part, we compare 3 query sql statement and each of them test for 5 times. The result is as follows.
+
+```sql
+select mid from project_user  -- query all
+select mid from project_user where level > 3  -- range query
+select mid from project_user where cast(mid as varchar) like '24%'  -- vague query
+```
+
+<p align="middle">
+  <img src="pic\\task4\\7.png" width="400" />
+</p>
+
+**We find that for the global query, PDBC is more faster than JDBC and these two perform similar in other queries.**
 
 
 
