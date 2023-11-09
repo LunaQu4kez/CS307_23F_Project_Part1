@@ -103,8 +103,8 @@ Our design satisfies the needs of following :
 ### 3. Scalability
 The tables we've designed exhibit strong scalability:  
 * Table `project_following` can store all `mid` of following users. It's also very easy to add or delete new following. Meanwhile, it can easily retrieve the list of users following this user by keyword `group by`.
-* Table `project_like`, `project_coin` and `project_favorite` also have the scalability like `project_following` for the similar reason.
-* Table `project_view` uses self increasing primary key, which can make update the time easier.
+* Table `project_like`, `project_coin`, `project_favorite` and `project_view` also have the scalability like `project_following` for the similar reason.
+* Table `project_danmu` uses self increasing primary key, which can make insert easier.
 
 
 
