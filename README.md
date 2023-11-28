@@ -30,6 +30,8 @@ CS307_23F_Project_Part1
 ├── data
 │   └── *.csv
 │
+├── doc    # project document and report
+│
 ├── pic    # the picture used in report
 │
 ├── properties
@@ -48,9 +50,7 @@ CS307_23F_Project_Part1
 │
 ├── .gitignore
 ├── LICENSE
-├── README.md
-├── Report.md
-└── Report.pdf
+└── README.md
 ```
 
 
